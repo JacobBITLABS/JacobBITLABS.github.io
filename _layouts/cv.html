@@ -24,11 +24,11 @@ layout: default
                   {% elsif entry.type == "time_table" %}
                    {% include cv/time_table.html %}
                   {% else %}
-                    {{ entry.contents }}
+                  {{ entry.contents}}
                   {% endif %}
                   </div>
                 </div>
-              {% endfor %}
+                {% endfor %}
               </div>
           </article>
 

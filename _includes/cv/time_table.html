@@ -39,16 +39,23 @@
                 {% for item in content.items %}
                   <li>
                     {% if item.contents %}
-                      <span class="item-title">{{ item.title }}</span>
-                      <ul class="subitems">
+                    <span class="item-title">{{ item.title }}</span>
+                    <ul class="subitems">
                       {% for subitem in item.contents %}
-                        <li><span class="subitem">{{ subitem }}</span></li>
+                      <li><span class="subitem">{{ subitem }}</span></li> 
                       {% endfor %}
+                      
                       </ul>
                     {% else %}
                       <span class="item">{{ item }}</span>
                     {% endif %}
                   </li>
+                  {% if item.pdfs %}
+                   {% for pdf in item.pdfs %}          
+                      <div class="post-title">{% if page.cv_pdf %} <a href="{{ pdf | prepend: 'assets/pdf/' | relative_url}}" target="_blank" rel="noopener noreferrer" class="float-right"><i class="fas fa-file-pdf"></i></a>{% endif %}</div>
+                    {% endfor %}
+                  {% endif %}
+                  
                 {% endfor %}
               </ul>
             {% endif %}
