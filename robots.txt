@@ -1,0 +1,4 @@
+User-agent: *
+Disallow:
+
+Sitemap: https://jacobbitlabs.github.io/sitemap.xml
