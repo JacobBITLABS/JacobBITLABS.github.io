@@ -11,6 +11,13 @@
 - title: Education
   type: time_table
   contents:
+    - title: Master of Science (M.sc) in Computer Science
+      institution: University of Southern Denmark (SDU), Odense, Denmark
+      year: 2022 - 2024
+      description:
+        - The Masters's Programme in Computer Science
+        - "Thesis Title: Object Detection and Tracking using fully CNN networks and Transformers"
+
     - title: Bachelor of Science (BSc) in Computer Science
       institution: University of Southern Denmark (SDU), Odense, Denmark
       year: 2017 - 2022
@@ -30,6 +37,11 @@
 - title: Experience
   type: time_table
   contents:
+    - title: Freelance Drone Pilo 
+      institution: Freelance
+      year: 2017 - 2018
+      description: Aerial imagery capturing for clients. Risk management, radio-tower and police coordination
+
     - title: Salesman / Worker Saling Group 
       institution: Salling Group
       year: 2017 - 2018
@@ -86,10 +98,11 @@
   contents:
     - title: Computer Vision
       items: 
-        - Convolutional Neural Networks.
         - Transformers
+        - Convolutional Neural Networks.
         - Object Detection and Tracking
-        - .. above in aerial imagery
+        - Annotation formats
+        - Datasets 
     # - title: Topic 2.
     #   items:
     #     - Description 1.
@@ -99,5 +112,6 @@
   type: list
   contents:
     - Swift/iOS Development
+    - electronics and embedded systems like ESP32
 
 # http://localhost:8080/assets/pdf/Udtalelser.pdf

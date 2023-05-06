@@ -104,7 +104,7 @@ youtube_id: # your youtube channel id (youtube.com/@<youtube_id>)
 discord_id: # your discord id (18-digit unique numerical identifier)
 
 contact_note: >
-  Send me an email I will see that.
+  Preferably reach out via email.
 
 # -----------------------------------------------------------------------------
 # Analytics and search engine verification
@@ -173,6 +173,10 @@ collections:
   projects:
     output: true
     permalink: /projects/:path/
+  courses:
+    output: true
+    permalink: /courses/:path/
+  
 
 news:
   enabled: true
