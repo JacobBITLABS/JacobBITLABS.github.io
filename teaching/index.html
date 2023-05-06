@@ -12,7 +12,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>teaching | Jacob  Nielsen</title>
     <meta name="author" content="Jacob  Nielsen">
-    <meta name="description" content="Materials for courses you taught. Replace this text with your description.">
+    <meta name="description" content="Academic functions as Teaching Assistant.">
     <meta name="keywords" content="computer-science, computer-vision">
 
 
@@ -111,13 +111,53 @@
 
           <header class="post-header">
             <h1 class="post-title">teaching</h1>
-            <p class="post-description">Materials for courses you taught. Replace this text with your description.</p>
+            <p class="post-description">Academic functions as Teaching Assistant.</p>
           </header>
 
           <article>
-            <p>For now, this page is assumed to be a static description of your courses. You can convert it to a collection similar to <code class="language-plaintext highlighter-rouge">_projects/</code> so that you can have a dedicated page for each course.</p>
+            <!-- For now, this page is assumed to be a static description of your courses. You can convert it to a collection similar to `_projects/` so that you can have a dedicated page for each course.
 
-<p>Organize your courses by years, topics, or universities, however you like!</p>
+Organize your courses by years, topics, or universities, however you like! -->
+
+<!-- pages/projects.md -->
+<div class="projects">
+  <!-- Display categorized projects -->
+  <h2 class="category">work</h2>
+
+  <!-- Generate cards for each project -->
+  <div class="grid">
+<!-- _includes/projects.html -->
+<div class="grid-sizer"></div>
+<div class="grid-item">
+  <a href="/courses/1_course/">
+      <div class="card hoverable">
+<figure>
+
+  <picture>
+    
+    <source class="responsive-img-srcset" media="(max-width: 480px)" srcset="/assets/img/12-480.webp"></source>
+    <source class="responsive-img-srcset" media="(max-width: 800px)" srcset="/assets/img/12-800.webp"></source>
+    <source class="responsive-img-srcset" media="(max-width: 1400px)" srcset="/assets/img/12-1400.webp"></source>
+    
+
+    <!-- Fallback to the original file -->
+    <img src="/assets/img/12.jpg" width="auto" height="auto" alt="project thumbnail" onerror="this.onerror=null; $('.responsive-img-srcset').remove();">
+
+  </picture>
+
+</figure>
+
+        <div class="card-body">
+          <h2 class="card-title text-lowercase">DM890 - Computer Vision</h2>
+          <p class="card-text">TA in class for responsible professor Aritra Dutta</p>
+          <div class="row ml-1 mr-1 p-0">
+          </div>
+        </div>
+      </div>
+    </a>
+</div>
+  </div>
+</div>
 
           </article>
 
