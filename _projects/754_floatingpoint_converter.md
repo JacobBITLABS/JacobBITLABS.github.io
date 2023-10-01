@@ -1,11 +1,11 @@
 ---
 layout: page
-title: project 3
-description: a project that redirects to another website
-img: assets/img/7.jpg
-redirect: https://unsplash.com
-importance: 3
-category: work
+title: IEEE 754 Single-Precision Floating Point Converter
+description: Interactive converter for floating points written in vue.js
+img: assets/img/floating_point_cover.png
+redirect: https://jacobbitlabs.github.io/singlePrecisionIEE754ToDecimal/
+importance: 1
+category: fun
 ---
 
 Every project has a beautiful feature showcase page.
