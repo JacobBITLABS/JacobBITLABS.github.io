@@ -37,10 +37,10 @@
 - title: Experience
   type: time_table
   contents:
-    - title: Freelance Drone Pilo 
+    - title: Freelance Drone Pilot
       institution: Freelance
       year: 2017 - 2018
-      description: Aerial imagery capturing for clients. Risk management, radio-tower and police coordination
+      description: Aerial imagery capturing for clients. Risk management, radio-tower and police coordination etc.
 
     - title: Salesman / Worker Saling Group 
       institution: Salling Group
@@ -101,8 +101,9 @@
         - Transformers
         - Convolutional Neural Networks.
         - Object Detection and Tracking
+        - Tiny Objects
         - Annotation formats
-        - Datasets 
+        - Datasets
     # - title: Topic 2.
     #   items:
     #     - Description 1.
@@ -112,6 +113,6 @@
   type: list
   contents:
     - Swift/iOS Development
-    - electronics and embedded systems like ESP32
+    - Electronics and embedded systems like ESP32
 
 # http://localhost:8080/assets/pdf/Udtalelser.pdf
