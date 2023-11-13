@@ -2,7 +2,7 @@
 layout: page
 title: OMNI-DETR+SAM
 description: Semi-supervised obejct detection powered by foundational model.
-img: assets/img/bachelor_covor.png
+img: assets/img/jn.jpg
 importance: 3
 category: work
 ---

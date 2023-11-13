@@ -2,7 +2,7 @@
 layout: page
 title: IoU is also Discriminator in DETR's
 description: Supervised and semi-supervised object detection replacing IoU.
-img: assets/img/bachelor_covor.png
+img: assets/img/jn.jpg
 importance: 3
 category: work
 ---
