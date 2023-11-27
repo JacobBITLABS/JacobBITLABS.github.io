@@ -3,10 +3,10 @@ layout: page
 title: [Script] Inference Deformable-DETR / DETR
 description: Plug'n play script for DETR code-bases. 
 img: assets/img/jn.png
-importance: 3
+importance: 0
 category: tools
 ---
-Inference script for DETRs that work directly in the code-base. Just place the script in the root folder and add checkpoint, COCO-json and path to images.
+Inference script for DETRs that works directly in the code-base. Just place the script in the root folder and add checkpoint, COCO-json and path to images. 
 
 {% raw %} {% highlight python linenos %}
 # ------------------------------------------------------------------------
