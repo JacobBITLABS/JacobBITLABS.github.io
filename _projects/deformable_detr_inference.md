@@ -8,7 +8,7 @@ category: tools
 ---
 Inference script for DETRs that works directly in the code-base. Just place the script in the root folder and add checkpoint, COCO-json and path to images. 
 
-{% raw %} {% highlight python linenos %}
+```python
 # ------------------------------------------------------------------------
 # Copyright Jacob Nielsen 2023
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -346,4 +346,6 @@ if __name__ == '__main__':
     if args.output_dir:
         Path(args.output_dir).mkdir(parents=True, exist_ok=True)
     main(args)
-{% endhighlight %} {% endraw %}
+
+    
+  ```
