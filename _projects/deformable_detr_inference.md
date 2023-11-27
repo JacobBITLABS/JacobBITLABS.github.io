@@ -1,6 +1,6 @@
 ---
 layout: page
-title: [Script] Inference Deformable-DETR / DETR
+title: Script - Inference Deformable-DETR / DETR
 description: Plug'n play script for DETR code-bases. 
 img: assets/img/jn.png
 importance: 0
