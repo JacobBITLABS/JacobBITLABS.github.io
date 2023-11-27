@@ -123,344 +123,345 @@
           <article>
             <p>Inference script for DETRs that works directly in the code-base. Just place the script in the root folder and add checkpoint, COCO-json and path to images.</p>
 
-<p>{% highlight python linenos %}</p>
-<h1>————————————————————————</h1>
-<h1 id="copyright-jacob-nielsen-2023">Copyright Jacob Nielsen 2023</h1>
-<h1 id="permission-is-hereby-granted-free-of-charge-to-any-person-obtaining-a-copy">Permission is hereby granted, free of charge, to any person obtaining a copy</h1>
-<h1 id="of-this-software-and-associated-documentation-files-the-software-to-deal">of this software and associated documentation files (the “Software”), to deal</h1>
-<h1 id="in-the-software-without-restriction-including-without-limitation-the-rights">in the Software without restriction, including without limitation the rights</h1>
-<h1 id="to-use-copy-modify-merge-publish-distribute-sublicense-andor-sell">to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</h1>
-<h1 id="copies-of-the-software-and-to-permit-persons-to-whom-the-software-is">copies of the Software, and to permit persons to whom the Software is</h1>
-<h1 id="furnished-to-do-so-subject-to-the-following-conditions">furnished to do so, subject to the following conditions:</h1>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># ------------------------------------------------------------------------
+# Copyright Jacob Nielsen 2023
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+</span>
+<span class="c1"># The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+</span>
+<span class="c1"># THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+# 
+# ------------------------------------------------------------------------
+# Modfied from https://github.com/ahmed-nady/Deformable-DETR
+# ------------------------------------------------------------------------
+</span>
+<span class="kn">import</span> <span class="n">argparse</span>
+<span class="kn">import</span> <span class="n">random</span>
+<span class="kn">import</span> <span class="n">time</span>
+<span class="kn">from</span> <span class="n">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span> <span class="n">PIL</span> <span class="kn">import</span> <span class="n">Image</span><span class="p">,</span> <span class="n">ImageDraw</span>
+<span class="kn">import</span> <span class="n">torchvision.transforms</span> <span class="k">as</span> <span class="n">T</span>
+<span class="kn">from</span> <span class="n">pycocotools.coco</span> <span class="kn">import</span> <span class="n">COCO</span>
+<span class="kn">import</span> <span class="n">numpy</span> <span class="k">as</span> <span class="n">np</span>
+<span class="kn">import</span> <span class="n">torch</span>
+<span class="kn">import</span> <span class="n">util.misc</span> <span class="k">as</span> <span class="n">utils</span>
+<span class="kn">from</span> <span class="n">util</span> <span class="kn">import</span> <span class="n">box_ops</span>
+<span class="kn">from</span> <span class="n">models</span> <span class="kn">import</span> <span class="n">build_model</span>
+<span class="kn">import</span> <span class="n">matplotlib.pyplot</span> <span class="k">as</span> <span class="n">plt</span>
+<span class="kn">from</span> <span class="n">sklearn.manifold</span> <span class="kn">import</span> <span class="n">TSNE</span>
+<span class="kn">import</span> <span class="n">sys</span>
+<span class="kn">from</span> <span class="n">sklearn.preprocessing</span> <span class="kn">import</span> <span class="n">StandardScaler</span>
+<span class="kn">from</span> <span class="n">pycocotools.coco</span> <span class="kn">import</span> <span class="n">COCO</span>
+<span class="kn">from</span> <span class="n">pycocotools.cocoeval</span> <span class="kn">import</span> <span class="n">COCOeval</span>
+<span class="kn">import</span> <span class="n">umap</span>
 
-<h1 id="the-above-copyright-notice-and-this-permission-notice-shall-be-included-in">The above copyright notice and this permission notice shall be included in</h1>
-<h1 id="all-copies-or-substantial-portions-of-the-software">all copies or substantial portions of the Software.</h1>
+<span class="k">def</span> <span class="nf">get_args_parser</span><span class="p">():</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="p">.</span><span class="nc">ArgumentParser</span><span class="p">(</span><span class="sh">'</span><span class="s">Deformable DETR Detector Inference</span><span class="sh">'</span><span class="p">,</span> <span class="n">add_help</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">parser</span><span class="p">.</span><span class="nf">add_argument</span><span class="p">(</span><span class="sh">'</span><span class="s">--lr</span><span class="sh">'</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mf">2e-4</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">parser</span><span class="p">.</span><span class="nf">add_argument</span><span class="p">(</span><span class="sh">'</span><span class="s">--lr_backbone_names</span><span class="sh">'</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="p">[</span><span class="sh">"</span><span class="s">backbone.0</span><span class="sh">"</span><span class="p">],</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="sh">'</span><span class="s">+</span><span class="sh">'</span><span class="p">)</span>
+    <span class="n">parser</span><span class="p">.</span><span class="nf">add_argument</span><span class="p">(</span><span class="sh">'</span><span class="s">--lr_backbone</span><span class="sh">'</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mf">2e-5</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">parser</span><span class="p">.</span><span class="nf">add_argument</span><span class="p">(</span><span class="sh">'</span><span class="s">--lr_linear_proj_names</span><span class="sh">'</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="p">[</span><span class="sh">'</span><span class="s">reference_points</span><span class="sh">'</span><span class="p">,</span> <span class="sh">'</span><span class="s">sampling_offsets</span><span class="sh">'</span><span class="p">],</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="sh">'</span><span class="s">+</span><span class="sh">'</span><span class="p">)</span>
+    <span class="n">parser</span><span class="p">.</span><span class="nf">add_argument</span><span class="p">(</span><span class="sh">'</span><span class="s">--lr_linear_proj_mult</span><span class="sh">'</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">parser</span><span class="p">.</span><span class="nf">add_argument</span><span class="p">(</span><span class="sh">'</span><span class="s">--batch_size</span><span class="sh">'</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="n">parser</span><span class="p">.</span><span class="nf">add_argument</span><span class="p">(</span><span class="sh">'</span><span class="s">--weight_decay</span><span class="sh">'</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mf">1e-4</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">parser</span><span class="p">.</span><span class="nf">add_argument</span><span class="p">(</span><span class="sh">'</span><span class="s">--epochs</span><span class="sh">'</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="n">parser</span><span class="p">.</span><span class="nf">add_argument</span><span class="p">(</span><span class="sh">'</span><span class="s">--lr_drop</span><span class="sh">'</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="n">parser</span><span class="p">.</span><span class="nf">add_argument</span><span class="p">(</span><span class="sh">'</span><span class="s">--lr_drop_epochs</span><span class="sh">'</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="sh">'</span><span class="s">+</span><span class="sh">'</span><span class="p">)</span>
+    <span class="n">parser</span><span class="p">.</span><span class="nf">add_argument</span><span class="p">(</span><span class="sh">'</span><span class="s">--clip_max_norm</span><span class="sh">'</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="sh">'</span><span class="s">gradient clipping max norm</span><span class="sh">'</span><span class="p">)</span>
 
-<h1 id="the-software-is-provided-as-is-without-warranty-of-any-kind-express-or">THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</h1>
-<h1 id="implied-including-but-not-limited-to-the-warranties-of-merchantability">IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</h1>
-<h1 id="fitness-for-a-particular-purpose-and-noninfringement-in-no-event-shall-the">FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</h1>
-<h1 id="authors-or-copyright-holders-be-liable-for-any-claim-damages-or-other">AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</h1>
-<h1 id="liability-whether-in-an-action-of-contract-tort-or-otherwise-arising-from">LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</h1>
-<h1 id="out-of-or-in-connection-with-the-software-or-the-use-or-other-dealings-in">OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN</h1>
-<h1 id="the-software">THE SOFTWARE.</h1>
-<p>#</p>
-<h1 id="-1">————————————————————————</h1>
-<h1 id="modfied-from-httpsgithubcomahmed-nadydeformable-detr">Modfied from https://github.com/ahmed-nady/Deformable-DETR</h1>
-<h1 id="-2">————————————————————————</h1>
+    <span class="n">parser</span><span class="p">.</span><span class="nf">add_argument</span><span class="p">(</span><span class="sh">'</span><span class="s">--sgd</span><span class="sh">'</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="sh">'</span><span class="s">store_true</span><span class="sh">'</span><span class="p">)</span>
 
-<p>import argparse
-import random
-import time
-from pathlib import Path
-from PIL import Image, ImageDraw
-import torchvision.transforms as T
-from pycocotools.coco import COCO
-import numpy as np
-import torch
-import util.misc as utils
-from util import box_ops
-from models import build_model
-import matplotlib.pyplot as plt
-from sklearn.manifold import TSNE
-import sys
-from sklearn.preprocessing import StandardScaler
-from pycocotools.coco import COCO
-from pycocotools.cocoeval import COCOeval
-import umap</p>
+    <span class="c1"># Variants of Deformable DETR
+</span>    <span class="n">parser</span><span class="p">.</span><span class="nf">add_argument</span><span class="p">(</span><span class="sh">'</span><span class="s">--with_box_refine</span><span class="sh">'</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="sh">'</span><span class="s">store_true</span><span class="sh">'</span><span class="p">)</span>
+    <span class="n">parser</span><span class="p">.</span><span class="nf">add_argument</span><span class="p">(</span><span class="sh">'</span><span class="s">--two_stage</span><span class="sh">'</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="sh">'</span><span class="s">store_true</span><span class="sh">'</span><span class="p">)</span>
 
-<p>def get_args_parser():
-    parser = argparse.ArgumentParser(‘Deformable DETR Detector Inference’, add_help=False)
-    parser.add_argument(‘–lr’, default=2e-4, type=float)
-    parser.add_argument(‘–lr_backbone_names’, default=[“backbone.0”], type=str, nargs=’+’)
-    parser.add_argument(‘–lr_backbone’, default=2e-5, type=float)
-    parser.add_argument(‘–lr_linear_proj_names’, default=[‘reference_points’, ‘sampling_offsets’], type=str, nargs=’+’)
-    parser.add_argument(‘–lr_linear_proj_mult’, default=0.1, type=float)
-    parser.add_argument(‘–batch_size’, default=2, type=int)
-    parser.add_argument(‘–weight_decay’, default=1e-4, type=float)
-    parser.add_argument(‘–epochs’, default=50, type=int)
-    parser.add_argument(‘–lr_drop’, default=40, type=int)
-    parser.add_argument(‘–lr_drop_epochs’, default=None, type=int, nargs=’+’)
-    parser.add_argument(‘–clip_max_norm’, default=0.1, type=float,
-                        help=’gradient clipping max norm’)</p>
+    <span class="c1"># Model parameters
+</span>    <span class="n">parser</span><span class="p">.</span><span class="nf">add_argument</span><span class="p">(</span><span class="sh">'</span><span class="s">--frozen_weights</span><span class="sh">'</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="sh">"</span><span class="s">Path to the pretrained model. If set, only the mask head will be trained</span><span class="sh">"</span><span class="p">)</span>
 
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>parser.add_argument('--sgd', action='store_true')
+    <span class="c1"># * Backbone
+</span>    <span class="n">parser</span><span class="p">.</span><span class="nf">add_argument</span><span class="p">(</span><span class="sh">'</span><span class="s">--backbone</span><span class="sh">'</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="sh">'</span><span class="s">resnet50</span><span class="sh">'</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="sh">"</span><span class="s">Name of the convolutional backbone to use</span><span class="sh">"</span><span class="p">)</span>
+    <span class="n">parser</span><span class="p">.</span><span class="nf">add_argument</span><span class="p">(</span><span class="sh">'</span><span class="s">--dilation</span><span class="sh">'</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="sh">'</span><span class="s">store_true</span><span class="sh">'</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="sh">"</span><span class="s">If true, we replace stride with dilation in the last convolutional block (DC5)</span><span class="sh">"</span><span class="p">)</span>
+    <span class="n">parser</span><span class="p">.</span><span class="nf">add_argument</span><span class="p">(</span><span class="sh">'</span><span class="s">--position_embedding</span><span class="sh">'</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="sh">'</span><span class="s">sine</span><span class="sh">'</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="p">(</span><span class="sh">'</span><span class="s">sine</span><span class="sh">'</span><span class="p">,</span> <span class="sh">'</span><span class="s">learned</span><span class="sh">'</span><span class="p">),</span>
+                        <span class="n">help</span><span class="o">=</span><span class="sh">"</span><span class="s">Type of positional embedding to use on top of the image features</span><span class="sh">"</span><span class="p">)</span>
+    <span class="n">parser</span><span class="p">.</span><span class="nf">add_argument</span><span class="p">(</span><span class="sh">'</span><span class="s">--position_embedding_scale</span><span class="sh">'</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="p">.</span><span class="n">pi</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="sh">"</span><span class="s">position / size * scale</span><span class="sh">"</span><span class="p">)</span>
+    <span class="n">parser</span><span class="p">.</span><span class="nf">add_argument</span><span class="p">(</span><span class="sh">'</span><span class="s">--num_feature_levels</span><span class="sh">'</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="sh">'</span><span class="s">number of feature levels</span><span class="sh">'</span><span class="p">)</span>
 
-# Variants of Deformable DETR
-parser.add_argument('--with_box_refine', default=False, action='store_true')
-parser.add_argument('--two_stage', default=False, action='store_true')
+    <span class="c1"># * Transformer
+</span>    <span class="n">parser</span><span class="p">.</span><span class="nf">add_argument</span><span class="p">(</span><span class="sh">'</span><span class="s">--enc_layers</span><span class="sh">'</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="sh">"</span><span class="s">Number of encoding layers in the transformer</span><span class="sh">"</span><span class="p">)</span>
+    <span class="n">parser</span><span class="p">.</span><span class="nf">add_argument</span><span class="p">(</span><span class="sh">'</span><span class="s">--dec_layers</span><span class="sh">'</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="sh">"</span><span class="s">Number of decoding layers in the transformer</span><span class="sh">"</span><span class="p">)</span>
+    <span class="n">parser</span><span class="p">.</span><span class="nf">add_argument</span><span class="p">(</span><span class="sh">'</span><span class="s">--dim_feedforward</span><span class="sh">'</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">1024</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="sh">"</span><span class="s">Intermediate size of the feedforward layers in the transformer blocks</span><span class="sh">"</span><span class="p">)</span>
+    <span class="n">parser</span><span class="p">.</span><span class="nf">add_argument</span><span class="p">(</span><span class="sh">'</span><span class="s">--hidden_dim</span><span class="sh">'</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="sh">"</span><span class="s">Size of the embeddings (dimension of the transformer)</span><span class="sh">"</span><span class="p">)</span>
+    <span class="n">parser</span><span class="p">.</span><span class="nf">add_argument</span><span class="p">(</span><span class="sh">'</span><span class="s">--dropout</span><span class="sh">'</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="sh">"</span><span class="s">Dropout applied in the transformer</span><span class="sh">"</span><span class="p">)</span>
+    <span class="n">parser</span><span class="p">.</span><span class="nf">add_argument</span><span class="p">(</span><span class="sh">'</span><span class="s">--nheads</span><span class="sh">'</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="sh">"</span><span class="s">Number of attention heads inside the transformer</span><span class="sh">'</span><span class="s">s attentions</span><span class="sh">"</span><span class="p">)</span>
+    <span class="n">parser</span><span class="p">.</span><span class="nf">add_argument</span><span class="p">(</span><span class="sh">'</span><span class="s">--num_queries</span><span class="sh">'</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">900</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="sh">"</span><span class="s">Number of query slots</span><span class="sh">"</span><span class="p">)</span>
+    <span class="n">parser</span><span class="p">.</span><span class="nf">add_argument</span><span class="p">(</span><span class="sh">'</span><span class="s">--dec_n_points</span><span class="sh">'</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="n">parser</span><span class="p">.</span><span class="nf">add_argument</span><span class="p">(</span><span class="sh">'</span><span class="s">--enc_n_points</span><span class="sh">'</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
 
-# Model parameters
-parser.add_argument('--frozen_weights', type=str, default=None,
-                    help="Path to the pretrained model. If set, only the mask head will be trained")
+    <span class="c1"># * Segmentation
+</span>    <span class="n">parser</span><span class="p">.</span><span class="nf">add_argument</span><span class="p">(</span><span class="sh">'</span><span class="s">--masks</span><span class="sh">'</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="sh">'</span><span class="s">store_true</span><span class="sh">'</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="sh">"</span><span class="s">Train segmentation head if the flag is provided</span><span class="sh">"</span><span class="p">)</span>
 
-# * Backbone
-parser.add_argument('--backbone', default='resnet50', type=str,
-                    help="Name of the convolutional backbone to use")
-parser.add_argument('--dilation', action='store_true',
-                    help="If true, we replace stride with dilation in the last convolutional block (DC5)")
-parser.add_argument('--position_embedding', default='sine', type=str, choices=('sine', 'learned'),
-                    help="Type of positional embedding to use on top of the image features")
-parser.add_argument('--position_embedding_scale', default=2 * np.pi, type=float,
-                    help="position / size * scale")
-parser.add_argument('--num_feature_levels', default=4, type=int, help='number of feature levels')
+    <span class="c1"># Loss
+</span>    <span class="n">parser</span><span class="p">.</span><span class="nf">add_argument</span><span class="p">(</span><span class="sh">'</span><span class="s">--no_aux_loss</span><span class="sh">'</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="sh">'</span><span class="s">aux_loss</span><span class="sh">'</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="sh">'</span><span class="s">store_false</span><span class="sh">'</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="sh">"</span><span class="s">Disables auxiliary decoding losses (loss at each layer)</span><span class="sh">"</span><span class="p">)</span>
 
-# * Transformer
-parser.add_argument('--enc_layers', default=6, type=int,
-                    help="Number of encoding layers in the transformer")
-parser.add_argument('--dec_layers', default=6, type=int,
-                    help="Number of decoding layers in the transformer")
-parser.add_argument('--dim_feedforward', default=1024, type=int,
-                    help="Intermediate size of the feedforward layers in the transformer blocks")
-parser.add_argument('--hidden_dim', default=256, type=int,
-                    help="Size of the embeddings (dimension of the transformer)")
-parser.add_argument('--dropout', default=0.1, type=float,
-                    help="Dropout applied in the transformer")
-parser.add_argument('--nheads', default=16, type=int,
-                    help="Number of attention heads inside the transformer's attentions")
-parser.add_argument('--num_queries', default=900, type=int,
-                    help="Number of query slots")
-parser.add_argument('--dec_n_points', default=4, type=int)
-parser.add_argument('--enc_n_points', default=4, type=int)
+    <span class="c1"># * Matcher
+</span>    <span class="n">parser</span><span class="p">.</span><span class="nf">add_argument</span><span class="p">(</span><span class="sh">'</span><span class="s">--set_cost_class</span><span class="sh">'</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="sh">"</span><span class="s">Class coefficient in the matching cost</span><span class="sh">"</span><span class="p">)</span>
+    <span class="n">parser</span><span class="p">.</span><span class="nf">add_argument</span><span class="p">(</span><span class="sh">'</span><span class="s">--set_cost_bbox</span><span class="sh">'</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="sh">"</span><span class="s">L1 box coefficient in the matching cost</span><span class="sh">"</span><span class="p">)</span>
+    <span class="n">parser</span><span class="p">.</span><span class="nf">add_argument</span><span class="p">(</span><span class="sh">'</span><span class="s">--set_cost_giou</span><span class="sh">'</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="sh">"</span><span class="s">giou box coefficient in the matching cost</span><span class="sh">"</span><span class="p">)</span>
 
-# * Segmentation
-parser.add_argument('--masks', action='store_true',
-                    help="Train segmentation head if the flag is provided")
+    <span class="c1"># * Loss coefficients
+</span>    <span class="n">parser</span><span class="p">.</span><span class="nf">add_argument</span><span class="p">(</span><span class="sh">'</span><span class="s">--mask_loss_coef</span><span class="sh">'</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">parser</span><span class="p">.</span><span class="nf">add_argument</span><span class="p">(</span><span class="sh">'</span><span class="s">--dice_loss_coef</span><span class="sh">'</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">parser</span><span class="p">.</span><span class="nf">add_argument</span><span class="p">(</span><span class="sh">'</span><span class="s">--cls_loss_coef</span><span class="sh">'</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">parser</span><span class="p">.</span><span class="nf">add_argument</span><span class="p">(</span><span class="sh">'</span><span class="s">--bbox_loss_coef</span><span class="sh">'</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">parser</span><span class="p">.</span><span class="nf">add_argument</span><span class="p">(</span><span class="sh">'</span><span class="s">--giou_loss_coef</span><span class="sh">'</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">parser</span><span class="p">.</span><span class="nf">add_argument</span><span class="p">(</span><span class="sh">'</span><span class="s">--focal_alpha</span><span class="sh">'</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mf">0.25</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
 
-# Loss
-parser.add_argument('--no_aux_loss', dest='aux_loss', action='store_false',
-                    help="Disables auxiliary decoding losses (loss at each layer)")
+    <span class="c1"># dataset parameters
+</span>    <span class="n">parser</span><span class="p">.</span><span class="nf">add_argument</span><span class="p">(</span><span class="sh">'</span><span class="s">--dataset_file</span><span class="sh">'</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="sh">'</span><span class="s">visDrone</span><span class="sh">'</span><span class="p">)</span>
+    <span class="n">parser</span><span class="p">.</span><span class="nf">add_argument</span><span class="p">(</span><span class="sh">'</span><span class="s">--coco_path</span><span class="sh">'</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="sh">'</span><span class="s">./data/coco</span><span class="sh">'</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">)</span>
+    <span class="n">parser</span><span class="p">.</span><span class="nf">add_argument</span><span class="p">(</span><span class="sh">'</span><span class="s">--coco_panoptic_path</span><span class="sh">'</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">)</span>
+    <span class="n">parser</span><span class="p">.</span><span class="nf">add_argument</span><span class="p">(</span><span class="sh">'</span><span class="s">--remove_difficult</span><span class="sh">'</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="sh">'</span><span class="s">store_true</span><span class="sh">'</span><span class="p">)</span>
 
-# * Matcher
-parser.add_argument('--set_cost_class', default=2, type=float,
-                    help="Class coefficient in the matching cost")
-parser.add_argument('--set_cost_bbox', default=5, type=float,
-                    help="L1 box coefficient in the matching cost")
-parser.add_argument('--set_cost_giou', default=2, type=float,
-                    help="giou box coefficient in the matching cost")
+    <span class="n">parser</span><span class="p">.</span><span class="nf">add_argument</span><span class="p">(</span><span class="sh">'</span><span class="s">--output_dir</span><span class="sh">'</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="sh">''</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="sh">'</span><span class="s">path where to save, empty for no saving</span><span class="sh">'</span><span class="p">)</span>
+    <span class="n">parser</span><span class="p">.</span><span class="nf">add_argument</span><span class="p">(</span><span class="sh">'</span><span class="s">--device</span><span class="sh">'</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="sh">'</span><span class="s">cuda</span><span class="sh">'</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="sh">'</span><span class="s">device to use for training / testing</span><span class="sh">'</span><span class="p">)</span>
+    <span class="n">parser</span><span class="p">.</span><span class="nf">add_argument</span><span class="p">(</span><span class="sh">'</span><span class="s">--seed</span><span class="sh">'</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="n">parser</span><span class="p">.</span><span class="nf">add_argument</span><span class="p">(</span><span class="sh">'</span><span class="s">--resume</span><span class="sh">'</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="sh">''</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="sh">'</span><span class="s">resume from checkpoint</span><span class="sh">'</span><span class="p">)</span>
+    <span class="n">parser</span><span class="p">.</span><span class="nf">add_argument</span><span class="p">(</span><span class="sh">'</span><span class="s">--start_epoch</span><span class="sh">'</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="sh">'</span><span class="s">N</span><span class="sh">'</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="sh">'</span><span class="s">start epoch</span><span class="sh">'</span><span class="p">)</span>
+    <span class="n">parser</span><span class="p">.</span><span class="nf">add_argument</span><span class="p">(</span><span class="sh">'</span><span class="s">--img_path</span><span class="sh">'</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="sh">'</span><span class="s">input image file for inference</span><span class="sh">'</span><span class="p">)</span>
+    <span class="n">parser</span><span class="p">.</span><span class="nf">add_argument</span><span class="p">(</span><span class="sh">'</span><span class="s">--eval</span><span class="sh">'</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="sh">'</span><span class="s">store_true</span><span class="sh">'</span><span class="p">)</span>
+    <span class="n">parser</span><span class="p">.</span><span class="nf">add_argument</span><span class="p">(</span><span class="sh">'</span><span class="s">--num_workers</span><span class="sh">'</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="n">parser</span><span class="p">.</span><span class="nf">add_argument</span><span class="p">(</span><span class="sh">'</span><span class="s">--cache_mode</span><span class="sh">'</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="sh">'</span><span class="s">store_true</span><span class="sh">'</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="sh">'</span><span class="s">whether to cache images on memory</span><span class="sh">'</span><span class="p">)</span>
 
-# * Loss coefficients
-parser.add_argument('--mask_loss_coef', default=1, type=float)
-parser.add_argument('--dice_loss_coef', default=1, type=float)
-parser.add_argument('--cls_loss_coef', default=2, type=float)
-parser.add_argument('--bbox_loss_coef', default=5, type=float)
-parser.add_argument('--giou_loss_coef', default=2, type=float)
-parser.add_argument('--focal_alpha', default=0.25, type=float)
+    <span class="k">return</span> <span class="n">parser</span>
 
-# dataset parameters
-parser.add_argument('--dataset_file', default='visDrone')
-parser.add_argument('--coco_path', default='./data/coco', type=str)
-parser.add_argument('--coco_panoptic_path', type=str)
-parser.add_argument('--remove_difficult', action='store_true')
+<span class="c1"># standard PyTorch mean-std input image normalization
+</span><span class="n">transform</span> <span class="o">=</span> <span class="n">T</span><span class="p">.</span><span class="nc">Compose</span><span class="p">([</span>
+    <span class="n">T</span><span class="p">.</span><span class="nc">Resize</span><span class="p">(</span><span class="mi">800</span><span class="p">),</span>
+    <span class="n">T</span><span class="p">.</span><span class="nc">ToTensor</span><span class="p">(),</span>
+    <span class="n">T</span><span class="p">.</span><span class="nc">Normalize</span><span class="p">([</span><span class="mf">0.485</span><span class="p">,</span> <span class="mf">0.456</span><span class="p">,</span> <span class="mf">0.406</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.229</span><span class="p">,</span> <span class="mf">0.224</span><span class="p">,</span> <span class="mf">0.225</span><span class="p">])</span>
+<span class="p">])</span>
 
-parser.add_argument('--output_dir', default='',
-                    help='path where to save, empty for no saving')
-parser.add_argument('--device', default='cuda',
-                    help='device to use for training / testing')
-parser.add_argument('--seed', default=42, type=int)
-parser.add_argument('--resume', default='', help='resume from checkpoint')
-parser.add_argument('--start_epoch', default=0, type=int, metavar='N',
-                    help='start epoch')
-parser.add_argument('--img_path', type=str, help='input image file for inference')
-parser.add_argument('--eval', action='store_true')
-parser.add_argument('--num_workers', default=2, type=int)
-parser.add_argument('--cache_mode', default=False, action='store_true', help='whether to cache images on memory')
 
-return parser
-</code></pre></div></div>
+<span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">args</span><span class="p">):</span>
+    <span class="n">utils</span><span class="p">.</span><span class="nf">init_distributed_mode</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+    <span class="nf">print</span><span class="p">(</span><span class="sh">"</span><span class="s">git:</span><span class="se">\n</span><span class="s">  {}</span><span class="se">\n</span><span class="sh">"</span><span class="p">.</span><span class="nf">format</span><span class="p">(</span><span class="n">utils</span><span class="p">.</span><span class="nf">get_sha</span><span class="p">()))</span>
 
-<h1 id="standard-pytorch-mean-std-input-image-normalization">standard PyTorch mean-std input image normalization</h1>
-<p>transform = T.Compose([
-    T.Resize(800),
-    T.ToTensor(),
-    T.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-])</p>
+    <span class="k">if</span> <span class="n">args</span><span class="p">.</span><span class="n">frozen_weights</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="n">args</span><span class="p">.</span><span class="n">masks</span><span class="p">,</span> <span class="sh">"</span><span class="s">Frozen training is meant for segmentation only</span><span class="sh">"</span>
+    <span class="nf">print</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+    <span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="p">.</span><span class="nf">device</span><span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="n">device</span><span class="p">)</span>
 
-<p>def main(args):
-    utils.init_distributed_mode(args)
-    print(“git:\n  {}\n”.format(utils.get_sha()))</p>
+    <span class="c1"># fix the seed for reproducibility
+</span>    <span class="n">seed</span> <span class="o">=</span> <span class="n">args</span><span class="p">.</span><span class="n">seed</span> <span class="o">+</span> <span class="n">utils</span><span class="p">.</span><span class="nf">get_rank</span><span class="p">()</span>
+    <span class="n">torch</span><span class="p">.</span><span class="nf">manual_seed</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
+    <span class="n">np</span><span class="p">.</span><span class="n">random</span><span class="p">.</span><span class="nf">seed</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
+    <span class="n">random</span><span class="p">.</span><span class="nf">seed</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
 
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>if args.frozen_weights is not None:
-    assert args.masks, "Frozen training is meant for segmentation only"
-print(args)
-device = torch.device(args.device)
-
-# fix the seed for reproducibility
-seed = args.seed + utils.get_rank()
-torch.manual_seed(seed)
-np.random.seed(seed)
-random.seed(seed)
-
-# construct model
-model, criterion, postprocessors = build_model(args)
-model.to(device)
-
-# loading checkpoint
-resume_path = args.inference_resume
-checkpoint = torch.load(resume_path, map_location='cpu')
-# loading model from checkpoint
-model.load_state_dict(checkpoint['model'], strict=False)
-
-if torch.cuda.is_available():
-    model.cuda()
-model.eval() # eval mode -&gt; node gradient calc.
-
-# Initialize the COCO api for instance annotations
-coco=COCO(args.coco_file)
-
-IMG_NAME_LIST = []
-IMG_NAME_IDS = []
-
-if len(IMG_NAME_LIST) == 0:
-    for _ in range(args.num_random_samples):
-        # Get image ID at random
-        img_ids = coco.getImgIds()
-        # pick at random 
-        rand_id = random.randrange(1, (len(img_ids)))
-        IMG_NAME_IDS.append(rand_id)
-        image = coco.loadImgs(ids=[rand_id])[0]
-        #sample = random.choice(os.listdir(DATA_DIR)) #change dir name to whatever
-        IMG_NAME_LIST.append(image)
-else:
-    # add specific images:
-    image = coco.loadImgs(ids=args.inference_img_ids)[0]
-    IMG_NAME_LIST.append(image)
+    <span class="c1"># construct model
+</span>    <span class="n">model</span><span class="p">,</span> <span class="n">criterion</span><span class="p">,</span> <span class="n">postprocessors</span> <span class="o">=</span> <span class="nf">build_model</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+    <span class="n">model</span><span class="p">.</span><span class="nf">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
     
-    img_ids = coco.getImgIds()
-    for img_id in img_ids:
-        image = coco.loadImgs(ids=[img_id])[0]
-        IMG_NAME_LIST.append(image)
+    <span class="c1"># loading checkpoint
+</span>    <span class="n">resume_path</span> <span class="o">=</span> <span class="n">args</span><span class="p">.</span><span class="n">inference_resume</span>
+    <span class="n">checkpoint</span> <span class="o">=</span> <span class="n">torch</span><span class="p">.</span><span class="nf">load</span><span class="p">(</span><span class="n">resume_path</span><span class="p">,</span> <span class="n">map_location</span><span class="o">=</span><span class="sh">'</span><span class="s">cpu</span><span class="sh">'</span><span class="p">)</span>
+    <span class="c1"># loading model from checkpoint
+</span>    <span class="n">model</span><span class="p">.</span><span class="nf">load_state_dict</span><span class="p">(</span><span class="n">checkpoint</span><span class="p">[</span><span class="sh">'</span><span class="s">model</span><span class="sh">'</span><span class="p">],</span> <span class="n">strict</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 
-print("LEN IMG NAME LIST: ", len(IMG_NAME_LIST))
-for IMG in IMG_NAME_LIST:
-    print("[IMG]: ", IMG)
-    im = Image.open(args.data_dir+IMG['file_name']) # PIL Image
-    img = transform(im).unsqueeze(0)                # apply tranformations, size, normalization etc.
-    img=img.cuda()                                  # send to GPU
-    # Through the model
-    outputs = model(img)
-    # extract outputs
-    out_logits, output_bf_ffn, out_bbox = outputs['pred_logits'], outputs['output_bf_ffn'], outputs['pred_boxes']
-    
-    output_bf_ffn = output_bf_ffn[-1] # grab last layer
-    print("output_bf_ffn.size() ", output_bf_ffn.size())
+    <span class="k">if</span> <span class="n">torch</span><span class="p">.</span><span class="n">cuda</span><span class="p">.</span><span class="nf">is_available</span><span class="p">():</span>
+        <span class="n">model</span><span class="p">.</span><span class="nf">cuda</span><span class="p">()</span>
+    <span class="n">model</span><span class="p">.</span><span class="nf">eval</span><span class="p">()</span> <span class="c1"># eval mode -&gt; node gradient calc.
+</span>
+    <span class="c1"># Initialize the COCO api for instance annotations
+</span>    <span class="n">coco</span><span class="o">=</span><span class="nc">COCO</span><span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="n">coco_file</span><span class="p">)</span>
 
+    <span class="n">IMG_NAME_LIST</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">IMG_NAME_IDS</span> <span class="o">=</span> <span class="p">[]</span>
 
-    # extract topK
-    prob = out_logits.sigmoid()
-    topk_values, topk_indexes = torch.topk(prob.view(out_logits.shape[0], -1), args.topK, dim=1)
-    print("TOP-K Indexes")
-    print(topk_indexes // out_logits.shape[2])
-    scores = topk_values
-    topk_boxes = topk_indexes // out_logits.shape[2]
-    labels = topk_indexes % out_logits.shape[2]
-    boxes = box_ops.box_cxcywh_to_xyxy(out_bbox)
-    boxes = torch.gather(boxes, 1, topk_boxes.unsqueeze(-1).repeat(1,1,4))
-    # scatter plot
-    embeddings = output_bf_ffn[0,  topk_indexes[0] // out_logits.shape[2]] #[0, topk_indexes[0]]  # Assuming batch size 1
-    print("Chosen Embeds: ", embeddings.size())
-
-    # Threshold predictions - finetune this for your dataset 
-    keep = scores &gt; args.keep_threshold
-    # print("KEEP: ", keep)
-    boxes = boxes[keep]    # boxes (xyxy)
-    labels = labels[keep]  # class labels
-    scores = scores[keep]  # probabilities
-
-    embeddings = embeddings[keep[0]] # embeds for scatter plot
-
-    # and from relative [0, 1] to absolute [0, height] coordinates
-    im_h, im_w = im.size
-    target_sizes = torch.tensor([[im_w,im_h]])
-    target_sizes = target_sizes.cuda()
-    img_h, img_w = target_sizes.unbind(1)
-    scale_fct = torch.stack([img_w, img_h, img_w, img_h], dim=1)
-    boxes = boxes * scale_fct[:, None, :]
-
-    print("No. boxes: ", len(boxes[0]))
-    print("No. scores: ", len(scores))
-    print("No. labels: ", len(labels))
-    print("No. embedding: ", len(embeddings))
-
-    print("labels: ", labels)
-
-    # Draw Predictions 
-    source_img = Image.open(args.data_dir+IMG['file_name']).convert("RGBA")
-    draw = ImageDraw.Draw(source_img)
-    ANNO_COLOR = args.annotation_color
-    index = 0
-    for xmin, ymin, xmax, ymax in boxes[0].tolist():
-        print("index: ", index)
-        category_label_id =  labels[index].item()
-        # find the corresponding category name:
-        if category_label_id != 0:
-            category = coco.loadCats(category_label_id)
-            category_label_name = str(category[0]['name'])
-
-            probability_score = format(scores[index].item()*100, ".2f") # softmax
-            print_text = str(category_label_name) + ': ' + str(probability_score)
-            print( str(category_label_name), " with prob.: ", probability_score)
-            # draw text
-            draw.text((xmin, ymin-10), print_text, fill= ANNO_COLOR)
-            draw.rectangle(((xmin, ymin), (xmax, ymax)), outline= ANNO_COLOR)
-            index += 1
-        else: 
-            print("No object")
+    <span class="k">if</span> <span class="nf">len</span><span class="p">(</span><span class="n">IMG_NAME_LIST</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nf">range</span><span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="n">num_random_samples</span><span class="p">):</span>
+            <span class="c1"># Get image ID at random
+</span>            <span class="n">img_ids</span> <span class="o">=</span> <span class="n">coco</span><span class="p">.</span><span class="nf">getImgIds</span><span class="p">()</span>
+            <span class="c1"># pick at random 
+</span>            <span class="n">rand_id</span> <span class="o">=</span> <span class="n">random</span><span class="p">.</span><span class="nf">randrange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="p">(</span><span class="nf">len</span><span class="p">(</span><span class="n">img_ids</span><span class="p">)))</span>
+            <span class="n">IMG_NAME_IDS</span><span class="p">.</span><span class="nf">append</span><span class="p">(</span><span class="n">rand_id</span><span class="p">)</span>
+            <span class="n">image</span> <span class="o">=</span> <span class="n">coco</span><span class="p">.</span><span class="nf">loadImgs</span><span class="p">(</span><span class="n">ids</span><span class="o">=</span><span class="p">[</span><span class="n">rand_id</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="c1">#sample = random.choice(os.listdir(DATA_DIR)) #change dir name to whatever
+</span>            <span class="n">IMG_NAME_LIST</span><span class="p">.</span><span class="nf">append</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># add specific images:
+</span>        <span class="n">image</span> <span class="o">=</span> <span class="n">coco</span><span class="p">.</span><span class="nf">loadImgs</span><span class="p">(</span><span class="n">ids</span><span class="o">=</span><span class="n">args</span><span class="p">.</span><span class="n">inference_img_ids</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">IMG_NAME_LIST</span><span class="p">.</span><span class="nf">append</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
         
-    if args.draw_ground_truth:
-        index = 0
-        anno_ids = coco.getAnnIds(imgIds=[IMG['id']])
-        gt_annos = coco.loadAnns(ids=anno_ids)
-        gt_boxes = []
-        gt_labels = []
-        for gt_anno in gt_annos:
-            bbox = gt_anno['bbox']
-            gt_label = gt_anno['category_id']
-            gt_boxes.append(bbox)
-            gt_labels.append(gt_label)
+        <span class="n">img_ids</span> <span class="o">=</span> <span class="n">coco</span><span class="p">.</span><span class="nf">getImgIds</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">img_id</span> <span class="ow">in</span> <span class="n">img_ids</span><span class="p">:</span>
+            <span class="n">image</span> <span class="o">=</span> <span class="n">coco</span><span class="p">.</span><span class="nf">loadImgs</span><span class="p">(</span><span class="n">ids</span><span class="o">=</span><span class="p">[</span><span class="n">img_id</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">IMG_NAME_LIST</span><span class="p">.</span><span class="nf">append</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
 
-        GT_ANNO_COLOR = args.gt_annotation_color
-        for xmin, ymin, xmax, ymax in gt_boxes:
-            category_label_id =  gt_labels[index]
-            # # find the corresponding category name:
-            if category_label_id != 0:
-                category = coco.loadCats(category_label_id)
-                category_label_name = str(category[0]['name'])
-                print_text = str(category_label_name)
-                draw.text((xmin, ymin+10), print_text, fill= GT_ANNO_COLOR)
-                draw.rectangle(((xmin, ymin), (xmin+xmax, ymin+ymax)), outline = GT_ANNO_COLOR)
-                index += 1
+    <span class="nf">print</span><span class="p">(</span><span class="sh">"</span><span class="s">LEN IMG NAME LIST: </span><span class="sh">"</span><span class="p">,</span> <span class="nf">len</span><span class="p">(</span><span class="n">IMG_NAME_LIST</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">IMG</span> <span class="ow">in</span> <span class="n">IMG_NAME_LIST</span><span class="p">:</span>
+        <span class="nf">print</span><span class="p">(</span><span class="sh">"</span><span class="s">[IMG]: </span><span class="sh">"</span><span class="p">,</span> <span class="n">IMG</span><span class="p">)</span>
+        <span class="n">im</span> <span class="o">=</span> <span class="n">Image</span><span class="p">.</span><span class="nf">open</span><span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="n">data_dir</span><span class="o">+</span><span class="n">IMG</span><span class="p">[</span><span class="sh">'</span><span class="s">file_name</span><span class="sh">'</span><span class="p">])</span> <span class="c1"># PIL Image
+</span>        <span class="n">img</span> <span class="o">=</span> <span class="nf">transform</span><span class="p">(</span><span class="n">im</span><span class="p">).</span><span class="nf">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>                <span class="c1"># apply tranformations, size, normalization etc.
+</span>        <span class="n">img</span><span class="o">=</span><span class="n">img</span><span class="p">.</span><span class="nf">cuda</span><span class="p">()</span>                                  <span class="c1"># send to GPU
+</span>        <span class="c1"># Through the model
+</span>        <span class="n">outputs</span> <span class="o">=</span> <span class="nf">model</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
+        <span class="c1"># extract outputs
+</span>        <span class="n">out_logits</span><span class="p">,</span> <span class="n">output_bf_ffn</span><span class="p">,</span> <span class="n">out_bbox</span> <span class="o">=</span> <span class="n">outputs</span><span class="p">[</span><span class="sh">'</span><span class="s">pred_logits</span><span class="sh">'</span><span class="p">],</span> <span class="n">outputs</span><span class="p">[</span><span class="sh">'</span><span class="s">output_bf_ffn</span><span class="sh">'</span><span class="p">],</span> <span class="n">outputs</span><span class="p">[</span><span class="sh">'</span><span class="s">pred_boxes</span><span class="sh">'</span><span class="p">]</span>
+        
+        <span class="n">output_bf_ffn</span> <span class="o">=</span> <span class="n">output_bf_ffn</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="c1"># grab last layer
+</span>        <span class="nf">print</span><span class="p">(</span><span class="sh">"</span><span class="s">output_bf_ffn.size() </span><span class="sh">"</span><span class="p">,</span> <span class="n">output_bf_ffn</span><span class="p">.</span><span class="nf">size</span><span class="p">())</span>
+
+
+        <span class="c1"># extract topK
+</span>        <span class="n">prob</span> <span class="o">=</span> <span class="n">out_logits</span><span class="p">.</span><span class="nf">sigmoid</span><span class="p">()</span>
+        <span class="n">topk_values</span><span class="p">,</span> <span class="n">topk_indexes</span> <span class="o">=</span> <span class="n">torch</span><span class="p">.</span><span class="nf">topk</span><span class="p">(</span><span class="n">prob</span><span class="p">.</span><span class="nf">view</span><span class="p">(</span><span class="n">out_logits</span><span class="p">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="n">args</span><span class="p">.</span><span class="n">topK</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="nf">print</span><span class="p">(</span><span class="sh">"</span><span class="s">TOP-K Indexes</span><span class="sh">"</span><span class="p">)</span>
+        <span class="nf">print</span><span class="p">(</span><span class="n">topk_indexes</span> <span class="o">//</span> <span class="n">out_logits</span><span class="p">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+        <span class="n">scores</span> <span class="o">=</span> <span class="n">topk_values</span>
+        <span class="n">topk_boxes</span> <span class="o">=</span> <span class="n">topk_indexes</span> <span class="o">//</span> <span class="n">out_logits</span><span class="p">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">labels</span> <span class="o">=</span> <span class="n">topk_indexes</span> <span class="o">%</span> <span class="n">out_logits</span><span class="p">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">boxes</span> <span class="o">=</span> <span class="n">box_ops</span><span class="p">.</span><span class="nf">box_cxcywh_to_xyxy</span><span class="p">(</span><span class="n">out_bbox</span><span class="p">)</span>
+        <span class="n">boxes</span> <span class="o">=</span> <span class="n">torch</span><span class="p">.</span><span class="nf">gather</span><span class="p">(</span><span class="n">boxes</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">topk_boxes</span><span class="p">.</span><span class="nf">unsqueeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">).</span><span class="nf">repeat</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">4</span><span class="p">))</span>
+        <span class="c1"># scatter plot
+</span>        <span class="n">embeddings</span> <span class="o">=</span> <span class="n">output_bf_ffn</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span>  <span class="n">topk_indexes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">//</span> <span class="n">out_logits</span><span class="p">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]]</span> <span class="c1">#[0, topk_indexes[0]]  # Assuming batch size 1
+</span>        <span class="nf">print</span><span class="p">(</span><span class="sh">"</span><span class="s">Chosen Embeds: </span><span class="sh">"</span><span class="p">,</span> <span class="n">embeddings</span><span class="p">.</span><span class="nf">size</span><span class="p">())</span>
+
+        <span class="c1"># Threshold predictions - finetune this for your dataset 
+</span>        <span class="n">keep</span> <span class="o">=</span> <span class="n">scores</span> <span class="o">&gt;</span> <span class="n">args</span><span class="p">.</span><span class="n">keep_threshold</span>
+        <span class="c1"># print("KEEP: ", keep)
+</span>        <span class="n">boxes</span> <span class="o">=</span> <span class="n">boxes</span><span class="p">[</span><span class="n">keep</span><span class="p">]</span>    <span class="c1"># boxes (xyxy)
+</span>        <span class="n">labels</span> <span class="o">=</span> <span class="n">labels</span><span class="p">[</span><span class="n">keep</span><span class="p">]</span>  <span class="c1"># class labels
+</span>        <span class="n">scores</span> <span class="o">=</span> <span class="n">scores</span><span class="p">[</span><span class="n">keep</span><span class="p">]</span>  <span class="c1"># probabilities
+</span>
+        <span class="n">embeddings</span> <span class="o">=</span> <span class="n">embeddings</span><span class="p">[</span><span class="n">keep</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="c1"># embeds for scatter plot
+</span>
+        <span class="c1"># and from relative [0, 1] to absolute [0, height] coordinates
+</span>        <span class="n">im_h</span><span class="p">,</span> <span class="n">im_w</span> <span class="o">=</span> <span class="n">im</span><span class="p">.</span><span class="n">size</span>
+        <span class="n">target_sizes</span> <span class="o">=</span> <span class="n">torch</span><span class="p">.</span><span class="nf">tensor</span><span class="p">([[</span><span class="n">im_w</span><span class="p">,</span><span class="n">im_h</span><span class="p">]])</span>
+        <span class="n">target_sizes</span> <span class="o">=</span> <span class="n">target_sizes</span><span class="p">.</span><span class="nf">cuda</span><span class="p">()</span>
+        <span class="n">img_h</span><span class="p">,</span> <span class="n">img_w</span> <span class="o">=</span> <span class="n">target_sizes</span><span class="p">.</span><span class="nf">unbind</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">scale_fct</span> <span class="o">=</span> <span class="n">torch</span><span class="p">.</span><span class="nf">stack</span><span class="p">([</span><span class="n">img_w</span><span class="p">,</span> <span class="n">img_h</span><span class="p">,</span> <span class="n">img_w</span><span class="p">,</span> <span class="n">img_h</span><span class="p">],</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">boxes</span> <span class="o">=</span> <span class="n">boxes</span> <span class="o">*</span> <span class="n">scale_fct</span><span class="p">[:,</span> <span class="bp">None</span><span class="p">,</span> <span class="p">:]</span>
+
+        <span class="nf">print</span><span class="p">(</span><span class="sh">"</span><span class="s">No. boxes: </span><span class="sh">"</span><span class="p">,</span> <span class="nf">len</span><span class="p">(</span><span class="n">boxes</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+        <span class="nf">print</span><span class="p">(</span><span class="sh">"</span><span class="s">No. scores: </span><span class="sh">"</span><span class="p">,</span> <span class="nf">len</span><span class="p">(</span><span class="n">scores</span><span class="p">))</span>
+        <span class="nf">print</span><span class="p">(</span><span class="sh">"</span><span class="s">No. labels: </span><span class="sh">"</span><span class="p">,</span> <span class="nf">len</span><span class="p">(</span><span class="n">labels</span><span class="p">))</span>
+        <span class="nf">print</span><span class="p">(</span><span class="sh">"</span><span class="s">No. embedding: </span><span class="sh">"</span><span class="p">,</span> <span class="nf">len</span><span class="p">(</span><span class="n">embeddings</span><span class="p">))</span>
+
+        <span class="nf">print</span><span class="p">(</span><span class="sh">"</span><span class="s">labels: </span><span class="sh">"</span><span class="p">,</span> <span class="n">labels</span><span class="p">)</span>
+
+        <span class="c1"># Draw Predictions 
+</span>        <span class="n">source_img</span> <span class="o">=</span> <span class="n">Image</span><span class="p">.</span><span class="nf">open</span><span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="n">data_dir</span><span class="o">+</span><span class="n">IMG</span><span class="p">[</span><span class="sh">'</span><span class="s">file_name</span><span class="sh">'</span><span class="p">]).</span><span class="nf">convert</span><span class="p">(</span><span class="sh">"</span><span class="s">RGBA</span><span class="sh">"</span><span class="p">)</span>
+        <span class="n">draw</span> <span class="o">=</span> <span class="n">ImageDraw</span><span class="p">.</span><span class="nc">Draw</span><span class="p">(</span><span class="n">source_img</span><span class="p">)</span>
+        <span class="n">ANNO_COLOR</span> <span class="o">=</span> <span class="n">args</span><span class="p">.</span><span class="n">annotation_color</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">xmin</span><span class="p">,</span> <span class="n">ymin</span><span class="p">,</span> <span class="n">xmax</span><span class="p">,</span> <span class="n">ymax</span> <span class="ow">in</span> <span class="n">boxes</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nf">tolist</span><span class="p">():</span>
+            <span class="nf">print</span><span class="p">(</span><span class="sh">"</span><span class="s">index: </span><span class="sh">"</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span>
+            <span class="n">category_label_id</span> <span class="o">=</span>  <span class="n">labels</span><span class="p">[</span><span class="n">index</span><span class="p">].</span><span class="nf">item</span><span class="p">()</span>
+            <span class="c1"># find the corresponding category name:
+</span>            <span class="k">if</span> <span class="n">category_label_id</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">category</span> <span class="o">=</span> <span class="n">coco</span><span class="p">.</span><span class="nf">loadCats</span><span class="p">(</span><span class="n">category_label_id</span><span class="p">)</span>
+                <span class="n">category_label_name</span> <span class="o">=</span> <span class="nf">str</span><span class="p">(</span><span class="n">category</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="sh">'</span><span class="s">name</span><span class="sh">'</span><span class="p">])</span>
+
+                <span class="n">probability_score</span> <span class="o">=</span> <span class="nf">format</span><span class="p">(</span><span class="n">scores</span><span class="p">[</span><span class="n">index</span><span class="p">].</span><span class="nf">item</span><span class="p">()</span><span class="o">*</span><span class="mi">100</span><span class="p">,</span> <span class="sh">"</span><span class="s">.2f</span><span class="sh">"</span><span class="p">)</span> <span class="c1"># softmax
+</span>                <span class="n">print_text</span> <span class="o">=</span> <span class="nf">str</span><span class="p">(</span><span class="n">category_label_name</span><span class="p">)</span> <span class="o">+</span> <span class="sh">'</span><span class="s">: </span><span class="sh">'</span> <span class="o">+</span> <span class="nf">str</span><span class="p">(</span><span class="n">probability_score</span><span class="p">)</span>
+                <span class="nf">print</span><span class="p">(</span> <span class="nf">str</span><span class="p">(</span><span class="n">category_label_name</span><span class="p">),</span> <span class="sh">"</span><span class="s"> with prob.: </span><span class="sh">"</span><span class="p">,</span> <span class="n">probability_score</span><span class="p">)</span>
+                <span class="c1"># draw text
+</span>                <span class="n">draw</span><span class="p">.</span><span class="nf">text</span><span class="p">((</span><span class="n">xmin</span><span class="p">,</span> <span class="n">ymin</span><span class="o">-</span><span class="mi">10</span><span class="p">),</span> <span class="n">print_text</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span> <span class="n">ANNO_COLOR</span><span class="p">)</span>
+                <span class="n">draw</span><span class="p">.</span><span class="nf">rectangle</span><span class="p">(((</span><span class="n">xmin</span><span class="p">,</span> <span class="n">ymin</span><span class="p">),</span> <span class="p">(</span><span class="n">xmax</span><span class="p">,</span> <span class="n">ymax</span><span class="p">)),</span> <span class="n">outline</span><span class="o">=</span> <span class="n">ANNO_COLOR</span><span class="p">)</span>
+                <span class="n">index</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">else</span><span class="p">:</span> 
+                <span class="nf">print</span><span class="p">(</span><span class="sh">"</span><span class="s">No object</span><span class="sh">"</span><span class="p">)</span>
+            
+        <span class="k">if</span> <span class="n">args</span><span class="p">.</span><span class="n">draw_ground_truth</span><span class="p">:</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">anno_ids</span> <span class="o">=</span> <span class="n">coco</span><span class="p">.</span><span class="nf">getAnnIds</span><span class="p">(</span><span class="n">imgIds</span><span class="o">=</span><span class="p">[</span><span class="n">IMG</span><span class="p">[</span><span class="sh">'</span><span class="s">id</span><span class="sh">'</span><span class="p">]])</span>
+            <span class="n">gt_annos</span> <span class="o">=</span> <span class="n">coco</span><span class="p">.</span><span class="nf">loadAnns</span><span class="p">(</span><span class="n">ids</span><span class="o">=</span><span class="n">anno_ids</span><span class="p">)</span>
+            <span class="n">gt_boxes</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">gt_labels</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">gt_anno</span> <span class="ow">in</span> <span class="n">gt_annos</span><span class="p">:</span>
+                <span class="n">bbox</span> <span class="o">=</span> <span class="n">gt_anno</span><span class="p">[</span><span class="sh">'</span><span class="s">bbox</span><span class="sh">'</span><span class="p">]</span>
+                <span class="n">gt_label</span> <span class="o">=</span> <span class="n">gt_anno</span><span class="p">[</span><span class="sh">'</span><span class="s">category_id</span><span class="sh">'</span><span class="p">]</span>
+                <span class="n">gt_boxes</span><span class="p">.</span><span class="nf">append</span><span class="p">(</span><span class="n">bbox</span><span class="p">)</span>
+                <span class="n">gt_labels</span><span class="p">.</span><span class="nf">append</span><span class="p">(</span><span class="n">gt_label</span><span class="p">)</span>
+
+            <span class="n">GT_ANNO_COLOR</span> <span class="o">=</span> <span class="n">args</span><span class="p">.</span><span class="n">gt_annotation_color</span>
+            <span class="k">for</span> <span class="n">xmin</span><span class="p">,</span> <span class="n">ymin</span><span class="p">,</span> <span class="n">xmax</span><span class="p">,</span> <span class="n">ymax</span> <span class="ow">in</span> <span class="n">gt_boxes</span><span class="p">:</span>
+                <span class="n">category_label_id</span> <span class="o">=</span>  <span class="n">gt_labels</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+                <span class="c1"># # find the corresponding category name:
+</span>                <span class="k">if</span> <span class="n">category_label_id</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">category</span> <span class="o">=</span> <span class="n">coco</span><span class="p">.</span><span class="nf">loadCats</span><span class="p">(</span><span class="n">category_label_id</span><span class="p">)</span>
+                    <span class="n">category_label_name</span> <span class="o">=</span> <span class="nf">str</span><span class="p">(</span><span class="n">category</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="sh">'</span><span class="s">name</span><span class="sh">'</span><span class="p">])</span>
+                    <span class="n">print_text</span> <span class="o">=</span> <span class="nf">str</span><span class="p">(</span><span class="n">category_label_name</span><span class="p">)</span>
+                    <span class="n">draw</span><span class="p">.</span><span class="nf">text</span><span class="p">((</span><span class="n">xmin</span><span class="p">,</span> <span class="n">ymin</span><span class="o">+</span><span class="mi">10</span><span class="p">),</span> <span class="n">print_text</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span> <span class="n">GT_ANNO_COLOR</span><span class="p">)</span>
+                    <span class="n">draw</span><span class="p">.</span><span class="nf">rectangle</span><span class="p">(((</span><span class="n">xmin</span><span class="p">,</span> <span class="n">ymin</span><span class="p">),</span> <span class="p">(</span><span class="n">xmin</span><span class="o">+</span><span class="n">xmax</span><span class="p">,</span> <span class="n">ymin</span><span class="o">+</span><span class="n">ymax</span><span class="p">)),</span> <span class="n">outline</span> <span class="o">=</span> <span class="n">GT_ANNO_COLOR</span><span class="p">)</span>
+                    <span class="n">index</span> <span class="o">+=</span> <span class="mi">1</span>
+        
+        <span class="nf">print</span><span class="p">(</span><span class="sh">"</span><span class="s">[Saving Image]: </span><span class="sh">"</span><span class="p">,</span> <span class="nf">str</span><span class="p">(</span><span class="n">IMG</span><span class="p">[</span><span class="sh">'</span><span class="s">file_name</span><span class="sh">'</span><span class="p">]</span><span class="o">+</span><span class="sh">'</span><span class="s">_inference.png</span><span class="sh">'</span><span class="p">))</span>
+        <span class="n">source_img</span><span class="p">.</span><span class="nf">save</span><span class="p">(</span><span class="n">IMG</span><span class="p">[</span><span class="sh">'</span><span class="s">file_name</span><span class="sh">'</span><span class="p">]</span><span class="o">+</span><span class="sh">'</span><span class="s">_inference.png</span><span class="sh">'</span><span class="p">,</span> <span class="sh">"</span><span class="s">png</span><span class="sh">"</span><span class="p">)</span>
+        <span class="c1"># results = [{'scores': s, 'labels': l, 'boxes': b} for s, l, b in zip(scores, labels, boxes)]
+</span>
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="sh">'</span><span class="s">__main__</span><span class="sh">'</span><span class="p">:</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="p">.</span><span class="nc">ArgumentParser</span><span class="p">(</span><span class="sh">'</span><span class="s">Deformable DETR Inference Script</span><span class="sh">'</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="nf">get_args_parser</span><span class="p">()])</span>
+
+    <span class="c1"># add these 
+</span>    <span class="n">RESUME</span> <span class="o">=</span> <span class="sh">''</span>     <span class="c1"># checkpoint .pth
+</span>    <span class="n">data_dir</span> <span class="o">=</span> <span class="sh">''</span>   <span class="c1"># image folder
+</span>    <span class="n">COCO_FILE</span> <span class="o">=</span> <span class="sh">''</span>  <span class="c1"># coco annotation file
+</span>    <span class="c1"># Inference parameters
+</span>    <span class="n">parser</span><span class="p">.</span><span class="nf">add_argument</span><span class="p">(</span><span class="sh">'</span><span class="s">--draw_ground_truth</span><span class="sh">'</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="sh">'</span><span class="s">store_true</span><span class="sh">'</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="sh">'</span><span class="s">draw ground truth annos</span><span class="sh">'</span><span class="p">)</span>
+    <span class="n">parser</span><span class="p">.</span><span class="nf">add_argument</span><span class="p">(</span><span class="sh">'</span><span class="s">--inference_resume</span><span class="sh">'</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">RESUME</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="sh">'</span><span class="s">resume from checkpoint</span><span class="sh">'</span><span class="p">)</span>
+    <span class="n">parser</span><span class="p">.</span><span class="nf">add_argument</span><span class="p">(</span><span class="sh">'</span><span class="s">--data_dir</span><span class="sh">'</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">data_dir</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="sh">'</span><span class="s">directory with inference images</span><span class="sh">'</span><span class="p">)</span>
+    <span class="n">parser</span><span class="p">.</span><span class="nf">add_argument</span><span class="p">(</span><span class="sh">'</span><span class="s">--coco_file</span><span class="sh">'</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">COCO_FILE</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="sh">'</span><span class="s">COCO formatted annotation file</span><span class="sh">'</span><span class="p">)</span>
+    <span class="n">parser</span><span class="p">.</span><span class="nf">add_argument</span><span class="p">(</span><span class="sh">'</span><span class="s">--annotation_color</span><span class="sh">'</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="p">(</span><span class="mi">221</span><span class="p">,</span> <span class="mi">40</span><span class="p">,</span> <span class="mi">252</span><span class="p">),</span> <span class="n">help</span><span class="o">=</span><span class="sh">'</span><span class="s">BBox color, predictions</span><span class="sh">'</span><span class="p">)</span>
+    <span class="n">parser</span><span class="p">.</span><span class="nf">add_argument</span><span class="p">(</span><span class="sh">'</span><span class="s">--gt_annotation_color</span><span class="sh">'</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="p">(</span><span class="mi">55</span><span class="p">,</span> <span class="mi">126</span><span class="p">,</span> <span class="mi">184</span><span class="p">),</span> <span class="n">help</span><span class="o">=</span><span class="sh">'</span><span class="s">BBox color, ground truth</span><span class="sh">'</span><span class="p">)</span>
+    <span class="n">parser</span><span class="p">.</span><span class="nf">add_argument</span><span class="p">(</span><span class="sh">'</span><span class="s">--keep_threshold</span><span class="sh">'</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mf">0.00</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="sh">'</span><span class="s">Filter output predictions on confidence score</span><span class="sh">'</span><span class="p">)</span>
+    <span class="n">parser</span><span class="p">.</span><span class="nf">add_argument</span><span class="p">(</span><span class="sh">'</span><span class="s">--topK</span><span class="sh">'</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="sh">'</span><span class="s">get topK predictions from model output</span><span class="sh">'</span><span class="p">)</span>
+
+    <span class="c1"># decide if you simply want N random images
+</span>    <span class="n">parser</span><span class="p">.</span><span class="nf">add_argument</span><span class="p">(</span><span class="sh">'</span><span class="s">--num_random_samples</span><span class="sh">'</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="sh">'</span><span class="s">Filter output predictions on confidence score</span><span class="sh">'</span><span class="p">)</span>
+
+    <span class="n">IMG_IDS</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">parser</span><span class="p">.</span><span class="nf">add_argument</span><span class="p">(</span><span class="sh">'</span><span class="s">--inference_img_ids</span><span class="sh">'</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">IMG_IDS</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="sh">'</span><span class="s">List with IMG ids to run inference on. If empty, random samples is used</span><span class="sh">'</span><span class="p">)</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="p">.</span><span class="nf">parse_args</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">args</span><span class="p">.</span><span class="n">output_dir</span><span class="p">:</span>
+        <span class="nc">Path</span><span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="n">output_dir</span><span class="p">).</span><span class="nf">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="nf">main</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+
     
-    print("[Saving Image]: ", str(IMG['file_name']+'_inference.png'))
-    source_img.save(IMG['file_name']+'_inference.png', "png")
-    # results = [{'scores': s, 'labels': l, 'boxes': b} for s, l, b in zip(scores, labels, boxes)]
-</code></pre></div></div>
-
-<p>if <strong>name</strong> == ‘<strong>main</strong>’:
-    parser = argparse.ArgumentParser(‘Deformable DETR Inference Script’, parents=[get_args_parser()])</p>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code># add these 
-RESUME = ''     # checkpoint .pth
-data_dir = ''   # image folder
-COCO_FILE = ''  # coco annotation file
-# Inference parameters
-parser.add_argument('--draw_ground_truth', default=True, action='store_true', help='draw ground truth annos')
-parser.add_argument('--inference_resume', default=RESUME, help='resume from checkpoint')
-parser.add_argument('--data_dir', default=data_dir, help='directory with inference images')
-parser.add_argument('--coco_file', default=COCO_FILE, help='COCO formatted annotation file')
-parser.add_argument('--annotation_color', default=(221, 40, 252), help='BBox color, predictions')
-parser.add_argument('--gt_annotation_color', default=(55, 126, 184), help='BBox color, ground truth')
-parser.add_argument('--keep_threshold', default=0.00, type=float, help='Filter output predictions on confidence score')
-parser.add_argument('--topK', default=40, type=int, help='get topK predictions from model output')
-
-# decide if you simply want N random images
-parser.add_argument('--num_random_samples', default=3, type=int, help='Filter output predictions on confidence score')
-
-IMG_IDS = []
-parser.add_argument('--inference_img_ids', default=IMG_IDS, help='List with IMG ids to run inference on. If empty, random samples is used')
-args = parser.parse_args()
-if args.output_dir:
-    Path(args.output_dir).mkdir(parents=True, exist_ok=True)
-main(args) {% endhighlight %} 
 </code></pre></div></div>
 
           </article>
