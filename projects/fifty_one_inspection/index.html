@@ -10,9 +10,9 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>a post with twitter | Jacob  Nielsen</title>
+    <title>FiftyOne Inspection | Jacob  Nielsen</title>
     <meta name="author" content="Jacob  Nielsen">
-    <meta name="description" content="an example of a blog post with twitter">
+    <meta name="description" content="Remote SSH Dataset Inspection using FiftyOne">
     <meta name="keywords" content="computer-science, computer-vision">
 
 
@@ -33,7 +33,7 @@
     <link rel="shortcut icon" href="data:image/svg+xml,&lt;svg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%20100%20100%22&gt;&lt;text%20y=%22.9em%22%20font-size=%2290%22&gt;%E2%9A%9B%EF%B8%8F&lt;/text&gt;&lt;/svg&gt;">
     
     <link rel="stylesheet" href="/assets/css/main.css">
-    <link rel="canonical" href="https://jacobbitlabs.github.io/blog/2020/twitter/">
+    <link rel="canonical" href="https://jacobbitlabs.github.io/projects/fifty_one_inspection/">
     
     <!-- Dark Mode -->
     
@@ -112,96 +112,84 @@
 
     <!-- Content -->
     <div class="container mt-5">
-      <!-- _layouts/post.html -->
+      <!-- page.html -->
+        <div class="post">
 
-<div class="post">
+          <header class="post-header">
+            <h1 class="post-title">FiftyOne Inspection</h1>
+            <p class="post-description">Remote SSH Dataset Inspection using FiftyOne</p>
+          </header>
 
-  <header class="post-header">
-    <h1 class="post-title">a post with twitter</h1>
-    <p class="post-meta">September 28, 2020</p>
-    <p class="post-tags">
-      <a href="/blog/2020"> <i class="fas fa-calendar fa-sm"></i> 2020 </a>
-        ·  
-        <a href="/blog/tag/formatting">
-          <i class="fas fa-hashtag fa-sm"></i> formatting</a>  
-          
-        ·  
-        <a href="/blog/category/sample-posts">
-          <i class="fas fa-tag fa-sm"></i> sample-posts</a>  
-          <a href="/blog/category/external-services">
-          <i class="fas fa-tag fa-sm"></i> external-services</a>  
-          
+          <article>
+            <p>Inspect dataset using FiftyOne on a remote machine through SSH</p>
 
-    </p>
-  </header>
+<h1 id="coco-format">COCO Format</h1>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="n">fiftyone</span> <span class="k">as</span> <span class="n">fo</span>
 
-  <article class="post-content">
-    <p>A sample blog page that demonstrates the inclusion of Tweets/Timelines/etc.</p>
+<span class="c1"># because I do not want to keep track of DB-names
+</span><span class="k">for</span> <span class="n">dataset</span> <span class="ow">in</span> <span class="n">fo</span><span class="p">.</span><span class="nf">list_datasets</span><span class="p">():</span>
+    <span class="n">dataset</span> <span class="o">=</span> <span class="n">fo</span><span class="p">.</span><span class="nf">load_dataset</span><span class="p">(</span><span class="n">dataset</span><span class="p">)</span>
+    <span class="n">dataset</span><span class="p">.</span><span class="nf">delete</span><span class="p">()</span>
 
-<h1 id="tweet">Tweet</h1>
-<p>An example of displaying a tweet:</p>
-<div class="jekyll-twitter-plugin">
-<blockquote class="twitter-tweet">
-<p lang="sv" dir="ltr">jekyll-twitter-plugin (1.0.0): A Liquid tag plugin for Jekyll that renders Tweets from Twitter API <a href="http://t.co/m4EIQPM9h4" rel="external nofollow noopener" target="_blank">http://t.co/m4EIQPM9h4</a></p>— RubyGems (@rubygems) <a href="https://twitter.com/rubygems/status/518821243320287232?ref_src=twsrc%5Etfw" rel="external nofollow noopener" target="_blank">October 5, 2014</a>
-</blockquote>
-<script async="" src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+<span class="n">name</span> <span class="o">=</span> <span class="sh">"</span><span class="s">your_dataset_name</span><span class="sh">"</span>
 
-</div>
+<span class="sh">"""</span><span class="s">
+Train
+</span><span class="sh">"""</span>
+<span class="n">labels_path</span> <span class="o">=</span> <span class="sh">"</span><span class="s"> </span><span class="sh">"</span>
+<span class="n">data_path</span> <span class="o">=</span> <span class="sh">"</span><span class="s"> </span><span class="sh">"</span>
 
-<h1 id="timeline">Timeline</h1>
-<p>An example of pulling from a timeline:</p>
-<div class="jekyll-twitter-plugin">
-<a class="twitter-timeline" data-width="500" data-tweet-limit="3" href="https://twitter.com/jekyllrb?ref_src=twsrc%5Etfw" rel="external nofollow noopener" target="_blank">Tweets by jekyllrb</a>
-<script async="" src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-</div>
+<span class="c1"># Import dataset by explicitly providing paths to the source media and labels
+</span><span class="n">dataset</span> <span class="o">=</span> <span class="n">fo</span><span class="p">.</span><span class="n">Dataset</span><span class="p">.</span><span class="nf">from_dir</span><span class="p">(</span>
+    <span class="n">dataset_type</span><span class="o">=</span><span class="n">fo</span><span class="p">.</span><span class="n">types</span><span class="p">.</span><span class="n">COCODetectionDataset</span><span class="p">,</span>
+    <span class="n">data_path</span><span class="o">=</span><span class="n">data_path</span><span class="p">,</span>
+    <span class="n">labels_path</span><span class="o">=</span><span class="n">labels_path</span><span class="p">,</span>
+    <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
+<span class="p">)</span>
 
-<h1 id="additional-details">Additional Details</h1>
-<p>For more details on using the plugin visit: <a href="https://github.com/rob-murray/jekyll-twitter-plugin" rel="external nofollow noopener" target="_blank">jekyll-twitter-plugin</a></p>
-
-  </article>
-
-
-  
+<span class="n">dataset</span> <span class="o">=</span> <span class="n">fo</span><span class="p">.</span><span class="nf">load_dataset</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+<span class="n">session</span> <span class="o">=</span> <span class="n">fo</span><span class="p">.</span><span class="nf">launch_app</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">remote</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span> <span class="c1"># remote
+</span><span class="n">session</span><span class="p">.</span><span class="nf">wait</span><span class="p">()</span> 
     
-    <br>
-    <hr>
-    <br>
-    <ul class="list-disc pl-8"></ul>
+</code></pre></div></div>
 
-    <!-- Adds related posts to the end of an article -->
-    <h2 class="text-3xl font-semibold mb-4 mt-12">Enjoy Reading This Article?</h2>
-    <p class="mb-2">Here are some more articles you might like to read next:</p>
-  
+<h1 id="yolov5-format">YOLOv5 Format</h1>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+<span class="kn">import</span> <span class="n">fiftyone</span> <span class="k">as</span> <span class="n">fo</span>
 
-  <li class="my-2">
-    <a class="text-pink-700 underline font-semibold hover:text-pink-800" href="/blog/2022/displaying-external-posts-on-your-al-folio-blog/">Displaying External Posts on Your al-folio Blog</a>
-  </li>
+<span class="k">for</span> <span class="n">dataset</span> <span class="ow">in</span> <span class="n">fo</span><span class="p">.</span><span class="nf">list_datasets</span><span class="p">():</span>
+    <span class="n">dataset</span> <span class="o">=</span> <span class="n">fo</span><span class="p">.</span><span class="nf">load_dataset</span><span class="p">(</span><span class="n">dataset</span><span class="p">)</span>
+    <span class="n">dataset</span><span class="p">.</span><span class="nf">delete</span><span class="p">()</span>
 
-  
+<span class="c1"># A name for the dataset
+</span><span class="n">name</span> <span class="o">=</span> <span class="sh">"</span><span class="s">my-dataset</span><span class="sh">"</span>
 
-  <li class="my-2">
-    <a class="text-pink-700 underline font-semibold hover:text-pink-800" href="/blog/2022/giscus-comments/">a post with giscus comments</a>
-  </li>
+<span class="c1"># The directory containing the dataset to import
+</span><span class="n">dataset_dir</span> <span class="o">=</span> <span class="sh">"</span><span class="s">../supervised_annotations_yolov5/DIR/</span><span class="sh">"</span> <span class="c1"># Expected: DIR/images and DIR/LABELS 
+</span>
+<span class="c1"># The type of the dataset being imported
+</span><span class="n">dataset_type</span> <span class="o">=</span> <span class="n">fo</span><span class="p">.</span><span class="n">types</span><span class="p">.</span><span class="n">YOLOv5Dataset</span>  <span class="c1"># for example
+</span>
+<span class="c1">#splits = ["train", "val"]
+</span><span class="n">splits</span> <span class="o">=</span> <span class="p">[</span><span class="sh">"</span><span class="s">train</span><span class="sh">"</span><span class="p">]</span>
 
-  
+<span class="n">dataset</span> <span class="o">=</span> <span class="n">fo</span><span class="p">.</span><span class="nc">Dataset</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">split</span> <span class="ow">in</span> <span class="n">splits</span><span class="p">:</span>
+    <span class="n">dataset</span><span class="p">.</span><span class="nf">add_dir</span><span class="p">(</span>
+        <span class="n">dataset_dir</span><span class="o">=</span><span class="n">dataset_dir</span><span class="p">,</span>
+        <span class="n">dataset_type</span><span class="o">=</span><span class="n">fo</span><span class="p">.</span><span class="n">types</span><span class="p">.</span><span class="n">YOLOv5Dataset</span><span class="p">,</span> <span class="c1"># Note. 
+</span>        <span class="n">split</span><span class="o">=</span><span class="n">split</span><span class="p">,</span>
+        <span class="n">tags</span><span class="o">=</span><span class="n">split</span><span class="p">,</span>
+<span class="p">)</span>
 
-  <li class="my-2">
-    <a class="text-pink-700 underline font-semibold hover:text-pink-800" href="/blog/2022/redirect/">a post with redirect</a>
-  </li>
 
-  
+<span class="n">session</span> <span class="o">=</span> <span class="n">fo</span><span class="p">.</span><span class="nf">launch_app</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">remote</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="mi">5151</span><span class="p">)</span> <span class="c1"># remote
+</span><span class="n">session</span><span class="p">.</span><span class="nf">wait</span><span class="p">()</span>    
+</code></pre></div></div>
 
-  <li class="my-2">
-    <a class="text-pink-700 underline font-semibold hover:text-pink-800" href="/blog/2021/diagrams/">a post with diagrams</a>
-  </li>
+          </article>
 
-  
-
-  <li class="my-2">
-    <a class="text-pink-700 underline font-semibold hover:text-pink-800" href="/blog/2021/distill/">a distill-style blog post</a>
-  </li>
-
-</div>
+        </div>
 
     </div>
 
