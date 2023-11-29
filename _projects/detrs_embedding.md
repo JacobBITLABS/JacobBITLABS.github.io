@@ -1,7 +1,7 @@
 ---
 layout: page
-title: DETR's, Learn your embeddings!
-description: Encourage better defined embeddings in DETRs to enhance performance. 
+title: DETR's, Learn your encodings!
+description: Unsupervised optimization of encodings in DETRs to enhance performance. 
 img: assets/img/jn.jpg
 importance: 3
 category: work
