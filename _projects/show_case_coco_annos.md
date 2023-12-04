@@ -2,7 +2,7 @@
 layout: page
 title: Visualize Random COCO
 description: Visualize N random Samples 
-img: assets/img/jn.png
+img: assets/img/jn.jpg
 importance: 4
 category: tools
 ---

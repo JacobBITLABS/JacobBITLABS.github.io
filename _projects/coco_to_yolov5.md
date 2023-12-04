@@ -2,7 +2,7 @@
 layout: page
 title: COCO to YOLOv5 script
 description: Script to convert from COCO-Format to YOLOv5 Format.  
-img: assets/img/jn.png
+img: assets/img/jn.jpg
 importance: 2
 category: tools
 ---

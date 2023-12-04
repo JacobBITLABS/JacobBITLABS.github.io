@@ -2,7 +2,7 @@
 layout: page
 title: FiftyOne Inspection
 description: Remote SSH Dataset Inspection using FiftyOne 
-img: assets/img/jn.png
+img: assets/img/jn.jpg
 importance: 1
 category: tools
 ---
