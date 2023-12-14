@@ -3,7 +3,7 @@ layout: page
 title: Dual-View Drone (DVD) Dataset
 description: DVD Dataset - Can Multi-view Improve Aerial Visual Perception?
 img: assets/img/dvd_cover_img.png
-redirect: https://dvd-dataset.github.io/dvd.github.io/
+redirect: https://jacobbitlabs.github.io/dvddataset/#/
 importance: 0
 category: work
 ---
