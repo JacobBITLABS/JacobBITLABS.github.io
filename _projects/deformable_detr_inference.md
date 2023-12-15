@@ -224,10 +224,8 @@ def main(args):
         # Through the model
         outputs = model(img)
         # extract outputs
-        out_logits, output_bf_ffn, out_bbox = outputs['pred_logits'], outputs['output_bf_ffn'], outputs['pred_boxes']
+        out_logits, out_bbox = outputs['pred_logits'], outputs['pred_boxes']
         
-        output_bf_ffn = output_bf_ffn[-1] # grab last layer
-        print("output_bf_ffn.size() ", output_bf_ffn.size())
 
 
         # extract topK
@@ -240,18 +238,13 @@ def main(args):
         labels = topk_indexes % out_logits.shape[2]
         boxes = box_ops.box_cxcywh_to_xyxy(out_bbox)
         boxes = torch.gather(boxes, 1, topk_boxes.unsqueeze(-1).repeat(1,1,4))
-        # scatter plot
-        embeddings = output_bf_ffn[0,  topk_indexes[0] // out_logits.shape[2]] #[0, topk_indexes[0]]  # Assuming batch size 1
-        print("Chosen Embeds: ", embeddings.size())
-
+     
         # Threshold predictions - finetune this for your dataset 
         keep = scores > args.keep_threshold
         # print("KEEP: ", keep)
         boxes = boxes[keep]    # boxes (xyxy)
         labels = labels[keep]  # class labels
         scores = scores[keep]  # probabilities
-
-        embeddings = embeddings[keep[0]] # embeds for scatter plot
 
         # and from relative [0, 1] to absolute [0, height] coordinates
         im_h, im_w = im.size
@@ -264,7 +257,6 @@ def main(args):
         print("No. boxes: ", len(boxes[0]))
         print("No. scores: ", len(scores))
         print("No. labels: ", len(labels))
-        print("No. embedding: ", len(embeddings))
 
         print("labels: ", labels)
 
