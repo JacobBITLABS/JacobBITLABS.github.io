@@ -1,9 +1,9 @@
 ---
 layout: page
-title: Dual-View Drone (DVD) Dataset
-description: DVD Dataset - Can Multi-view Improve Aerial Visual Perception?
+title: Multiview Aerial Visual Recognition (MAVREC)
+description: Can Multi-view Improve Aerial Visual Perception?
 img: assets/img/dvd_cover_img.png
-redirect: https://jacobbitlabs.github.io/dvddataset/#/
+redirect: https://mavrec.github.io
 importance: 0
 category: work
 ---
