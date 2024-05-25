@@ -22,5 +22,5 @@ My main objective is to investigate how we can use transformers in the domain of
 
  -->
 
-I am a computer scientist (MSc) from Department of Mathematics and Computer Science (IMADA) at the University of Southern Denmark, SDU. I am currently working as an ML/AI Engineer in an research and development department (R&D). 
+I am a computer scientist from Department of Mathematics and Computer Science (IMADA) at the University of Southern Denmark, SDU. I am currently working as an ML/AI Engineer in an research and development department (R&D).
 
