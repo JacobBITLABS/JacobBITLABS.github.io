@@ -4,18 +4,8 @@ github_users:
 repo_description_lines_max: 2
 
 github_repos:
-<<<<<<< HEAD
   - JacobBITLABS/UAVAmbulanceEscort
   - JacobBITLABS/MAVFleetControl
   - JacobBITLABS/Lubys-Algorithm-Maximal-Independent-Set
   - JacobBITLABS/Randomized_search_tree_and_partial_persistent_list
   - JacobBITLABS/storebaelt-vehicle-counter
-=======
-  - alshedivat/al-folio
-  - jekyll/jekyll
-  - twbs/bootstrap
-  - jquery/jquery
-  - FortAwesome/Font-Awesome
-  - mathjax/MathJax
-  - jpswalsh/academicons
->>>>>>> upstream/master

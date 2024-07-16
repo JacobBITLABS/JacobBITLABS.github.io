@@ -12,23 +12,13 @@ description: > # the ">" symbol means to ignore newlines until "footer_text:"
 footer_text: >
   Powered by <a href="https://jekyllrb.com/" target="_blank">Jekyll</a> with <a href="https://github.com/alshedivat/al-folio">al-folio</a> theme.
   Hosted by <a href="https://pages.github.com/" target="_blank">GitHub Pages</a>.
-<<<<<<< HEAD
 keywords: computer-science, computer-vision  # add your own keywords or leave empty
 
-=======
-  Photos from <a href="https://unsplash.com" target="_blank">Unsplash</a>.
-keywords: jekyll, jekyll-theme, academic-website, portfolio-website # add your own keywords or leave empty
->>>>>>> upstream/master
 lang: en # the language of your site (for example: en, fr, cn, ru, etc.)
 icon: ⚛️ # the emoji used as the favicon (alternatively, provide image name in /assets/img/)
 
-<<<<<<< HEAD
 url: https://JacobBITLABS.github.io # the base hostname & protocol for your site
 baseurl:  # the subpath of your site, e.g. /blog/
-=======
-url: https://alshedivat.github.io # the base hostname & protocol for your site
-baseurl: /al-folio # the subpath of your site, e.g. /blog/. Leave blank for root
->>>>>>> upstream/master
 last_updated: false # set to true if you want to display last updated in the footer
 impressum_path: # set to path to include impressum link in the footer, use the same path as permalink in a page, helps to conform with EU GDPR
 back_to_top: true # set to false to disable the back to top button
@@ -81,7 +71,6 @@ og_image: # The site-wide (default for all links) Open Graph preview image
 # Social integration
 # -----------------------------------------------------------------------------
 
-<<<<<<< HEAD
 github_username: JacobBITLABS # your GitHub user name
 gitlab_username: # your GitLab user name
 twitter_username: jacobi_nielsen # your Twitter handle
@@ -99,20 +88,6 @@ osf_id: # your OSF ID
 research_gate_profile: # your profile on ResearchGate
 blogger_url: # your blogger URL
 work_url: # work page URL
-=======
-acm_id: # your dl.acm.org/profile/id
-blogger_url: # your blogger URL
-bluesky_url: # your bluesky URL
-dblp_url: # your DBLP profile url
-discord_id: # your discord id (18-digit unique numerical identifier)
-facebook_id: # your facebook id
-flickr_id: # your flickr id
-github_username: # your GitHub user name
-gitlab_username: # your GitLab user name
-ieee_id: # your ieeexplore.ieee.org/author/id
-instagram_id: # your instagram id
-kaggle_id: # your kaggle id
->>>>>>> upstream/master
 keybase_username: # your keybase user name
 lastfm_id: # your lastfm id
 lattes_id: # your ID on Lattes (Brazilian Lattes CV)
@@ -162,14 +137,9 @@ bing_site_verification: # out your bing-site-verification ID (Bing Webmaster)
 # Blog
 # -----------------------------------------------------------------------------
 
-<<<<<<< HEAD
 blog_name:  # blog_name will be displayed in your blog page
 blog_nav_title:  # your blog must have a title for it to be displayed in the nav bar
 blog_description: Some semi-wise thoughts
-=======
-blog_name: al-folio # blog_name will be displayed in your blog page
-blog_description: a simple whitespace theme for academics
->>>>>>> upstream/master
 permalink: /blog/:year/:title/
 lsi: false # produce an index for related posts
 
@@ -232,15 +202,11 @@ collections:
     permalink: /:collection/:title/
   projects:
     output: true
-<<<<<<< HEAD
     permalink: /projects/:path/
   courses:
     output: true
     permalink: /courses/:path/
   
-=======
-    permalink: /:collection/:title/
->>>>>>> upstream/master
 
 announcements:
   enabled: true
