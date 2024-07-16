@@ -109,10 +109,12 @@
         - Tiny Objects
         - Annotation formats
         - Datasets
-    # - title: Topic 2.
-    #   items:
-    #     - Description 1.
-    #     - Description 2.
+    - title: Natural Language Processing
+      items:
+        - Transformers, Encoder/Decoder
+        - Embedding Space
+        - Low ressource 
+        - Efficient Transformers 
 
 - title: Other Interests
   type: list
