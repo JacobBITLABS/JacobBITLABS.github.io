@@ -50,11 +50,11 @@
                       <span class="item">{{ item }}</span>
                     {% endif %}
                   </li>
-                  {% if item.pdfs %}
+                  <!-- {% if item.pdfs %}
                    {% for pdf in item.pdfs %}          
                       <div class="post-title">{% if page.cv_pdf %} <a href="{{ pdf | prepend: 'assets/pdf/' | relative_url}}" target="_blank" rel="noopener noreferrer" class="float-right"><i class="fas fa-file-pdf"></i></a>{% endif %}</div>
                     {% endfor %}
-                  {% endif %}
+                  {% endif %} -->
                   
                 {% endfor %}
               </ul>
