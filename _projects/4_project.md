@@ -2,7 +2,7 @@
 layout: page
 title: Storebaelt Vechicle Counter - The Great Belt Bridge using OpenCV
 description: Vue Application
-img: assets/img/SVC.Png
+img: assets/img/SVC.png
 redirect: https://github.com/JacobBITLABS/storebaelt-vehicle-counter
 importance: 1
 category: fun
