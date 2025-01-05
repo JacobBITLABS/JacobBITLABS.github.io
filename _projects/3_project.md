@@ -2,10 +2,10 @@
 layout: page
 title: IEEE 754 Single-Precision Floating Point Converter
 description: Vue Application
-img: assets/img/iee754.Png
+img: assets/img/iee754.png
 redirect: https://jacobbitlabs.github.io/singlePrecisionIEE754ToDecimal/
 importance: 3
-category: work
+category: fun
 ---
 
 Every project has a beautiful feature showcase page.

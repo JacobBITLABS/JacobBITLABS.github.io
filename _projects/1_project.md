@@ -21,4 +21,4 @@ architecture, performance and asynchronous-execution and database connections. F
 of microservices is described. Both the theoretical and practical parts is described in detail. All in all giving a
 working solution, a platform, to the problem statement that this thesis is all about.
 
-The thesis was graded 12 (ETCS A).
+The thesis was graded 12 (ETCS mark A).
