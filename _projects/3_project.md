@@ -1,9 +1,9 @@
 ---
 layout: page
-title: project 3 with very long name
-description: a project that redirects to another website
-img: assets/img/7.jpg
-redirect: https://unsplash.com
+title: IEEE 754 Single-Precision Floating Point Converter
+description: Vue Application
+img: assets/img/iee754.Png
+redirect: https://jacobbitlabs.github.io/singlePrecisionIEE754ToDecimal/
 importance: 3
 category: work
 ---

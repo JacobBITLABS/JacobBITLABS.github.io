@@ -1,9 +1,10 @@
 ---
 layout: page
-title: project 4
-description: another without an image
-img:
-importance: 3
+title: Storebaelt Vechicle Counter - The Great Belt Bridge using OpenCV
+description: Vue Application
+img: assets/img/SVC.Png
+redirect: https://github.com/JacobBITLABS/storebaelt-vehicle-counter
+importance: 1
 category: fun
 ---
 

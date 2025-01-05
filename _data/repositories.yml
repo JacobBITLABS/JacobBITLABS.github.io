@@ -1,14 +1,12 @@
 github_users:
-  - torvalds
-  - alshedivat
+  - JacobBITLABS
 
 repo_description_lines_max: 2
 
 github_repos:
-  - alshedivat/al-folio
-  - jekyll/jekyll
-  - twbs/bootstrap
-  - jquery/jquery
-  - FortAwesome/Font-Awesome
-  - mathjax/MathJax
-  - jpswalsh/academicons
+  - schneiderkamplab/aimrun
+  - JacobBITLABS/bitlinear
+  - JacobBITLABS/storebaelt-vehicle-counter
+  - JacobBITLABS/Randomized_search_tree_and_partial_persistent_list
+  - JacobBITLABS/Lubys-Algorithm-Maximal-Independent-Set
+  - JacobBITLABS/MAVFleetControl

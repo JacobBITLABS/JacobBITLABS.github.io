@@ -1,8 +1,8 @@
 ---
 layout: page
-title: Bachelor's Thesis
-description: LiMIC
-img: assets/img/limic.png
+title: Masters's Thesis
+description: Object Detection and Tracking from a Drone Perspective with Transformer- and fully CNN networks
+img: assets/img/master_thesis_cover.png
 importance: 1
 category: work
 related_publications: false
