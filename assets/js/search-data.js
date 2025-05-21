@@ -54,6 +54,12 @@ ninja.data = [{
         },{id: "news-i-successfully-defended-my-masters-thesis-titled-object-detection-with-transformers-from-a-drone-perspective-graded-12-on-the-danish-grading-scale-ects-mark-a",
           title: 'I successfully defended my masters thesis titled: “Object Detection with Transformers from A...',
           description: "",
+          section: "News",},{id: "news-i-officially-started-my-as-an-industrial-phd-at-ordbogen-a-s-and-university-of-southern-denmark",
+          title: 'I officially started my as an industrial PhD at Ordbogen A/S and University...',
+          description: "",
+          section: "News",},{id: "news-continual-quantization-aware-pre-training-when-to-transition-from-16-bit-to-1-58-bit-pre-training-for-bitnet-language-models-has-been-accepted-to-the-acl-2025-findings",
+          title: '🚀 Continual Quantization-Aware Pre-Training: When to transition from 16-bit to 1.58-bit pre-training for...',
+          description: "",
           section: "News",},{id: "projects-bachelor-39-s-thesis",
           title: 'Bachelor&amp;#39;s Thesis',
           description: "LiMIC",
@@ -74,6 +80,21 @@ ninja.data = [{
           description: "Vue Application",
           section: "Projects",handler: () => {
               window.location.href = "/projects/4_project/";
+            },},{id: "projects-multiview-aerial-visual-recognition-mavrec",
+          title: 'Multiview Aerial Visual Recognition (MAVREC)',
+          description: "Can Multi-view Improve Aerial Visual Perception?",
+          section: "Projects",handler: () => {
+              window.location.href = "/projects/5_mavrec/";
+            },},{id: "projects-bitlinear",
+          title: 'bitlinear',
+          description: "Production-ready implementation of 1.58-bit layers for quantization-aware training",
+          section: "Projects",handler: () => {
+              window.location.href = "/projects/6_bitlinear/";
+            },},{id: "projects-detonation",
+          title: 'DeToNATION',
+          description: "Decoupled Torch Network-Aware Training on Interlinked Online Nodes",
+          section: "Projects",handler: () => {
+              window.location.href = "/projects/7_detonation/";
             },},{
         id: 'social-email',
         title: 'email',
