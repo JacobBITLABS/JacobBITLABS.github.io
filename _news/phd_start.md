@@ -5,4 +5,4 @@ inline: true
 related_posts: false
 ---
 
-I officially started my as an industrial PhD at Ordbogen A/S and University of Southern Denmark. 
+I officially started as an industrial PhD at Ordbogen A/S and University of Southern Denmark. 
