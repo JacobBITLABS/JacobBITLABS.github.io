@@ -3,7 +3,7 @@ layout: page
 title: Bachelor's Thesis
 description: LiMIC
 img: assets/img/limic.png
-importance: 1
+importance: 5
 category: work
 related_publications: false
 ---

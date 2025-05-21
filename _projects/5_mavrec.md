@@ -4,7 +4,7 @@ title: Multiview Aerial Visual Recognition (MAVREC)
 description: Can Multi-view Improve Aerial Visual Perception?
 img: assets/img/master_thesis_cover.png
 redirect: https://mavrec.github.io
-importance: 4
+importance: 3
 category: work
 ---
 

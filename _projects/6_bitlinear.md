@@ -4,7 +4,7 @@ title: bitlinear
 description: Production-ready implementation of 1.58-bit layers for quantization-aware training
 img: 
 redirect: https://github.com/schneiderkamplab/bitlinear
-importance: 3
+importance: 1
 category: work
 ---
 
