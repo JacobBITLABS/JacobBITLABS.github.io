@@ -4,7 +4,7 @@ title: IEEE 754 Single-Precision Floating Point Converter
 description: Vue Application
 img: assets/img/iee754.png
 redirect: https://jacobbitlabs.github.io/singlePrecisionIEE754ToDecimal/
-importance: 3
+importance: 4
 category: fun
 ---
 

@@ -1,11 +1,11 @@
 ---
 layout: page
-title: Storebaelt Vechicle Counter - The Great Belt Bridge using OpenCV
-description: Vue Application
-img: assets/img/SVC.png
-redirect: https://github.com/JacobBITLABS/storebaelt-vehicle-counter
-importance: 5
-category: fun
+title: Multiview Aerial Visual Recognition (MAVREC)
+description: Can Multi-view Improve Aerial Visual Perception?
+img: assets/img/master_thesis_cover.png
+redirect: https://mavrec.github.io
+importance: 4
+category: work
 ---
 
 Every project has a beautiful feature showcase page.

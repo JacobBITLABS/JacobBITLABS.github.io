@@ -1,11 +1,11 @@
 ---
 layout: page
-title: Storebaelt Vechicle Counter - The Great Belt Bridge using OpenCV
-description: Vue Application
-img: assets/img/SVC.png
-redirect: https://github.com/JacobBITLABS/storebaelt-vehicle-counter
-importance: 5
-category: fun
+title: bitlinear
+description: Production-ready implementation of 1.58-bit layers for quantization-aware training
+img: 
+redirect: https://github.com/schneiderkamplab/bitlinear
+importance: 3
+category: work
 ---
 
 Every project has a beautiful feature showcase page.
