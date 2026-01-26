@@ -17,3 +17,10 @@
 "ICAART":
   color: "#622757"
 
+"ACL":   
+  url: https://www.aclweb.org/portal/
+  color: "#FF0000"
+
+"AAAI":
+  url: https://aaai.org/
+  color: "#1F4E79" 
