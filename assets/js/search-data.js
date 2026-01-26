@@ -61,7 +61,7 @@ ninja.data = [{
           title: '🚀 Continual Quantization-Aware Pre-Training: When to transition from 16-bit to 1.58-bit pre-training for...',
           description: "",
           section: "News",},{id: "news-detonation-was-accepted-to-aaai-2026-paper",
-          title: 'DeToNATION was accepted to AAAI 2026! Paper',
+          title: '💥 DeToNATION was accepted to AAAI 2026! Paper',
           description: "",
           section: "News",},{id: "projects-bachelor-39-s-thesis",
           title: 'Bachelor&amp;#39;s Thesis',
