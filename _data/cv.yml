@@ -39,9 +39,13 @@
 - title: Experience
   type: time_table
   contents:
+    - title: PhD Student
+      institution: Ordbogen A/S & University of Southern Denmark (SDU)
+      year: 2025-
+
     - title: ML/AI Engineer
       institution: Ordbogen A/S
-      year: 2024-
+      year: 2024-2025
     
     - title: Freelance Drone Pilot
       # institution: Ordbogen A/S
