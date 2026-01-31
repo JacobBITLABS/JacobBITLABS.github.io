@@ -4,7 +4,7 @@ title: DeToNATION
 description: Decoupled Torch Network-Aware Training on Interlinked Online Nodes 
 img: 
 redirect: https://github.com/schneiderkamplab/DeToNATION
-importance: 3
+importance: 2
 category: work
 ---
 
