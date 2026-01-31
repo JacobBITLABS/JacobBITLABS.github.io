@@ -24,3 +24,7 @@
 "AAAI":
   url: https://aaai.org/
   color: "#1F4E79" 
+
+"IJQM":
+  url: https://journals.sagepub.com/toc/ijq/current
+  color: "#417140" 
